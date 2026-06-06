@@ -1,0 +1,70 @@
+// .header-container {
+//   height: 80px; // fixed header height
+//   background: linear-gradient(
+//     90deg,
+//     // smooth left-to-right gradient
+//     #4e54c8 0%,
+//     #8f94fb 100%
+//   );
+//   display: flex;
+//   align-items: center; // vertical centering
+//   padding: 0 24px; // horizontal padding
+//   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); // subtle bottom shadow
+//   z-index: 1000;
+// }
+
+// .header-content {
+//   max-width: 1280px; // constrain inner width
+//   width: 100%;
+//   margin: 0 auto;
+//   display: flex;
+//   justify-content: space-between; // space between logo, search, icons
+//   align-items: center;
+// }
+
+// .logo-container {
+//   display: flex;
+//   align-items: center;
+//   cursor: pointer;
+
+//   .logo {
+//     width: auto;
+//     height: 48px; // adjust as needed
+//     object-fit: contain;
+//   }
+// }
+
+// .search-container {
+//   flex: 1;
+//   margin: 0 24px;
+
+//   .search-input {
+//     width: 100%;
+//     border-radius: 24px;
+//   }
+// }
+
+// .icons-container {
+//   display: flex;
+//   align-items: center;
+
+//   .icon-item {
+//     margin-left: 16px;
+//     cursor: pointer;
+
+//     .header-icon {
+//       font-size: 20px;
+//       color: #fff;
+//     }
+//   }
+
+//   .user-avatar {
+//     margin-left: 16px;
+//     cursor: pointer;
+//   }
+// }
+
+// /* Mega-dropdown override to match header width */
+// .mega-dropdown {
+//   border-radius: 4px;
+// }
