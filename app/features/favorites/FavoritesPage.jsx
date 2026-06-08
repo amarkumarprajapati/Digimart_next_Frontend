@@ -1,5 +1,3 @@
-'use client';
-
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
@@ -53,7 +51,7 @@ const FavoritesPage = () => {
             </div>
             <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4 uppercase tracking-tight">Your Wishlist is Empty</h2>
             <p className="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
-              Looks like you haven&apos;t added any products to your favorites yet.
+              Looks like you haven't added any products to your favorites yet. 
               Start exploring our catalog to find items you love!
             </p>
             <button
