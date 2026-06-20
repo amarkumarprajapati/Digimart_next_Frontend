@@ -1,5 +1,5 @@
 'use client';
 
-import PaymentPage from "@/features/payment/PaymentPage";
+import PaymentPage from "@/components/payment/PaymentPage";
 
 export default PaymentPage;

@@ -1,7 +1,7 @@
 'use client';
 
-import MainLayout from "@/app-shell/MainLayout";
-import TermsConditions from "@/features/static/TermsConditions";
+import MainLayout from "@/components/layout/MainLayout";
+import TermsConditions from "@/components/static/TermsConditions";
 
 export default function TermsPage() {
   return (

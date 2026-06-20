@@ -1,7 +1,7 @@
 'use client';
 
-import MainLayout from "@/app-shell/MainLayout";
-import CheckoutPage from "@/features/checkout/CheckoutPage";
+import MainLayout from "@/components/layout/MainLayout";
+import CheckoutPage from "@/components/checkout/CheckoutPage";
 
 export default function CheckoutRoute() {
   return (

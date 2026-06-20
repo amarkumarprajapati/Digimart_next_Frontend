@@ -1,5 +1,5 @@
 'use client';
 
-import OrderConfirmation from "@/features/orders/OrderConfirmation";
+import OrderConfirmation from "@/components/orders/OrderConfirmation";
 
 export default OrderConfirmation;

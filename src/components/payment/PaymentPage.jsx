@@ -1,9 +1,9 @@
- 
+﻿ 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 
-const OrderConfirmation = () => {
+const PaymentPage = () => {
   const router = useRouter();
   useEffect(() => {
     router.push("/checkout", { replace: true });
@@ -12,4 +12,4 @@ const OrderConfirmation = () => {
   return null;
 };
 
-export default OrderConfirmation;
+export default PaymentPage;

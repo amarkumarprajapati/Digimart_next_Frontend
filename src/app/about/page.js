@@ -1,7 +1,7 @@
 'use client';
 
-import MainLayout from "@/app-shell/MainLayout";
-import AboutUs from "@/features/static/AboutUs";
+import MainLayout from "@/components/layout/MainLayout";
+import AboutUs from "@/components/static/AboutUs";
 
 export default function AboutPage() {
   return (

@@ -1,8 +1,8 @@
 'use client';
 
 import { Suspense } from "react";
-import MainLayout from "@/app-shell/MainLayout";
-import AllProductsPage from "@/features/products/listing/AllProductsPage";
+import MainLayout from "@/components/layout/MainLayout";
+import AllProductsPage from "@/components/products/AllProductsPage";
 
 export default function ProductsRoute() {
   return (

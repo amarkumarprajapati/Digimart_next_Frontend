@@ -1,7 +1,7 @@
 'use client';
 
-import MainLayout from "@/app-shell/MainLayout";
-import WishlistPage from "@/features/account/WishlistPage";
+import MainLayout from "@/components/layout/MainLayout";
+import WishlistPage from "@/components/account/WishlistPage";
 
 export default function WishlistRoute() {
   return (

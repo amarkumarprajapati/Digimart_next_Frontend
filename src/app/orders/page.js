@@ -1,7 +1,7 @@
 'use client';
 
-import MainLayout from "@/app-shell/MainLayout";
-import OrdersPage from "@/features/account/OrdersPage";
+import MainLayout from "@/components/layout/MainLayout";
+import OrdersPage from "@/components/account/OrdersPage";
 
 export default function OrdersRoute() {
   return (

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { ShoppingBag, Shield, Zap, Heart } from 'lucide-react';
 
 export default function AboutUs() {

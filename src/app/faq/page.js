@@ -1,7 +1,7 @@
 'use client';
 
-import MainLayout from "@/app-shell/MainLayout";
-import FAQ from "@/features/static/FAQ";
+import MainLayout from "@/components/layout/MainLayout";
+import FAQ from "@/components/static/FAQ";
 
 export default function FAQPage() {
   return (

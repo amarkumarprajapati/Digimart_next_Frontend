@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -100,9 +100,9 @@ const FavoritesPage = () => {
                   
                   <div className="flex items-center justify-between mb-5">
                     <div className="flex flex-col">
-                      <span className="text-lg font-black text-[#088395]">₹{item.Product_price?.toLocaleString()}</span>
+                      <span className="text-lg font-black text-[#088395]">Γé╣{item.Product_price?.toLocaleString()}</span>
                       {item.Product_originalPrice && (
-                        <span className="text-xs text-gray-400 line-through">₹{item.Product_originalPrice.toLocaleString()}</span>
+                        <span className="text-xs text-gray-400 line-through">Γé╣{item.Product_originalPrice.toLocaleString()}</span>
                       )}
                     </div>
                   </div>

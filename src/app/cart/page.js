@@ -1,7 +1,7 @@
 'use client';
 
-import MainLayout from "@/app-shell/MainLayout";
-import CartPage from "@/features/cart/CartPage";
+import MainLayout from "@/components/layout/MainLayout";
+import CartPage from "@/components/cart/CartPage";
 
 export default function CartRoute() {
   return (

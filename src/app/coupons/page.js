@@ -1,7 +1,7 @@
 'use client';
 
-import MainLayout from "@/app-shell/MainLayout";
-import CouponsPage from "@/features/account/CouponsPage";
+import MainLayout from "@/components/layout/MainLayout";
+import CouponsPage from "@/components/account/CouponsPage";
 
 export default function CouponsRoute() {
   return (

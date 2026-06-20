@@ -2,12 +2,11 @@
 
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Header from "@/components/Header/HeaderComponent";
 import Footer from "@/components/footer/FooterComponent";
 import AuthModal from "@/components/Modal/AuthModal";
 import { useAuthModal } from "@/hooks/useAuthModal";
-import { auth } from "@/lib/auth";
 
 const publicExact = ["/", "/products", "/cart", "/about", "/contact", "/faq", "/terms", "/favorites", "/error"];
 
@@ -20,7 +19,6 @@ const isPublicPath = (pathname) => {
 const MainLayout = ({ children }) => {
   const { isOpen, defaultTab, close } = useAuthModal();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-  const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -43,10 +41,7 @@ const MainLayout = ({ children }) => {
           <p className="text-sm text-muted mb-8 leading-relaxed">
             You need to be signed in to access this section.
           </p>
-          <button
-            onClick={() => close("login")}
-            className="btn-primary w-full h-11 text-sm"
-          >
+          <button onClick={() => close("login")} className="btn-primary w-full h-11 text-sm">
             Sign In
           </button>
         </div>
