@@ -2,15 +2,15 @@ import api from "./client";
 
 // ---------- AUTH ----------
 export const authService = {
-  register: (data) => api.post("/user/auth/register", data),
-  login: (data) => api.post("/user/auth/login", data),
-  logout: () => api.post("/user/auth/logout"),
-  getCurrentUser: () => api.get("/user/auth/me"),
-  refreshToken: (refreshToken) => api.post("/user/auth/refresh-token", { refreshToken }),
-  googleLogin: (idToken) => api.post("/user/auth/google", { idToken }),
-  forgotPassword: (email) => api.post("/user/auth/forgot-password", { email }),
+  register: (data) => api.post("/v1/auth/register", data),
+  login: (data) => api.post("/v1/auth/login", data),
+  logout: () => api.post("/v1/auth/logout"),
+  getCurrentUser: () => api.get("/v1/auth/me"),
+  refreshToken: (refreshToken) => api.post("/v1/auth/refresh-token", { refreshToken }),
+  googleLogin: (idToken) => api.post("/v1/auth/google", { idToken }),
+  forgotPassword: (email) => api.post("/v1/auth/forgot-password", { email }),
   resetPassword: (token, newPassword) =>
-    api.post("/user/auth/reset-password", { token, newPassword }),
+    api.post("/v1/auth/reset-password", { token, newPassword }),
 };
 
 // ---------- PROFILE & ADDRESSES ----------
@@ -30,8 +30,8 @@ export const profileService = {
 
 // ---------- PRODUCTS ----------
 export const productService = {
-  getAllProducts: (page = 1, limit = 10, sort = "") =>
-    api.get(`/user/products?page=${page}&limit=${limit}${sort ? `&sort=${encodeURIComponent(sort)}` : ""}`),
+  getAllProducts: (page = 1, limit = 20, sort = "") =>
+    api.get(`/products?page=${page}&limit=${limit}${sort ? `&sort=${encodeURIComponent(sort)}` : ""}`),
   searchProducts: (q, limit = 10) =>
     api.get(`/user/products/search?q=${encodeURIComponent(q)}&limit=${limit}`),
   getProductById: (id) => api.get(`/user/products/${id}`),

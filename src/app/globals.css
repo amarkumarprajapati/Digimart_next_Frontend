@@ -1,26 +1,196 @@
 @import "tailwindcss";
 
+/* Dark mode is toggled via a `.dark` class on <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ----------------------------------------------------------------------------
+   Brand palette — clean, professional, trustworthy
+   Light + dark values are defined as raw CSS variables and mapped to Tailwind
+   color utilities below so they adapt automatically with the `.dark` class.
+---------------------------------------------------------------------------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --canvas: #f8fafc;       /* page background (soft off-white) */
+  --surface: #ffffff;      /* cards / surfaces */
+  --surface-2: #f1f5f9;    /* subtle raised / inputs */
+  --ink: #0f172a;          /* headings / primary text (charcoal navy) */
+  --body: #1e293b;         /* body text (dark slate) */
+  --muted: #64748b;        /* secondary text */
+  --line: #e2e8f0;         /* borders / dividers */
+  --brand: #0d9488;        /* teal accent */
+  --brand-hover: #0b7c72;  /* teal hover */
+  --brand-soft: #f0fdfa;   /* teal tint background */
+}
+
+.dark {
+  --canvas: #0f172a;
+  --surface: #1e293b;
+  --surface-2: #273449;
+  --ink: #f8fafc;
+  --body: #e2e8f0;
+  --muted: #94a3b8;
+  --line: #334155;
+  --brand: #14b8a6;
+  --brand-hover: #2dd4bf;
+  --brand-soft: rgba(20, 184, 166, 0.12);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-body: var(--body);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+
+  --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-premium: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 12px -4px rgba(15, 23, 42, 0.08);
+  --shadow-hover: 0 12px 28px -12px rgba(15, 23, 42, 0.2);
+
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ----------------------------------------------------------------------------
+   Base
+---------------------------------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--canvas);
+  color: var(--body);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+/* ----------------------------------------------------------------------------
+   Reusable component classes
+---------------------------------------------------------------------------- */
+@layer components {
+  .container-page {
+    width: 100%;
+    max-width: 80rem; /* 1280px */
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+
+  @media (min-width: 1024px) {
+    .container-page { padding-inline: 2rem; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+  }
+
+  /* Backwards-compatible card used across the app */
+  .premium-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-soft);
+    transition: box-shadow 0.25s var(--ease-premium),
+      transform 0.25s var(--ease-premium), border-color 0.25s var(--ease-premium);
+  }
+  .premium-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+    border-color: color-mix(in srgb, var(--brand) 35%, transparent);
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.625rem;
+    background: var(--brand);
+    color: #fff;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+  }
+  .btn-primary:hover { background: var(--brand-hover); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.625rem;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    font-weight: 600;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+  .btn-outline:hover { background: var(--surface-2); }
+
+  .field {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 0.625rem;
+    color: var(--ink);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .field::placeholder { color: var(--muted); }
+  .field:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent);
+  }
+
+  /* Translucent overlay used for badges placed on top of imagery */
+  .glass {
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  /* Was a gradient — now a clean solid accent for headings */
+  .text-gradient { color: var(--brand); }
+}
+
+/* ----------------------------------------------------------------------------
+   Utilities
+---------------------------------------------------------------------------- */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Sections are visible by default (no dependency on JS observers) */
+.section-reveal { opacity: 1; transform: none; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+.dark ::-webkit-scrollbar-thumb { background: #334155; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ----------------------------------------------------------------------------
+   Ant Design alignment with the brand
+---------------------------------------------------------------------------- */
+.ant-btn-primary {
+  background-color: var(--brand) !important;
+  border-color: var(--brand) !important;
+}
+.ant-btn-primary:hover {
+  background-color: var(--brand-hover) !important;
+  border-color: var(--brand-hover) !important;
 }

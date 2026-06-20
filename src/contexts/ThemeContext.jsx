@@ -1,53 +1,55 @@
 'use client';
 
-/* eslint-disable */
-import { createContext, useContext, useMemo } from "react";
-import theme from '@/constants/theme.config';
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 
-const ThemeContext = createContext(theme);
+const ThemeContext = createContext({ theme: "light", toggleTheme: () => {}, setTheme: () => {} });
 
-/**
- * ThemeProvider component
- * Provides theme configuration to all child components
- */
+const applyTheme = (theme) => {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  if (theme === "dark") root.classList.add("dark");
+  else root.classList.remove("dark");
+};
+
 export const ThemeProvider = ({ children }) => {
-  const themeValue = useMemo(() => theme, []);
+  const [theme, setThemeState] = useState("light");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    let initial = "light";
+    try {
+      const stored = localStorage.getItem("theme");
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      initial = stored || (prefersDark ? "dark" : "light");
+    } catch {
+      initial = "light";
+    }
+    setThemeState(initial);
+    applyTheme(initial);
+    setMounted(true);
+  }, []);
+
+  const setTheme = useCallback((next) => {
+    setThemeState(next);
+    applyTheme(next);
+    try {
+      localStorage.setItem("theme", next);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  }, [theme, setTheme]);
 
   return (
-    <ThemeContext.Provider value={themeValue}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme, mounted }}>
       {children}
     </ThemeContext.Provider>
   );
 };
 
-/**
- * useTheme hook
- * Access theme configuration from any component
- * 
- * @example
- * const theme = useTheme();
- * const primaryColor = theme.colors.primary.DEFAULT;
- */
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-};
-
-/**
- * withTheme HOC
- * Wrap components to inject theme as a prop
- * 
- * @example
- * export default withTheme(MyComponent);
- */
-export const withTheme = (Component) => {
-  return (props) => {
-    const theme = useTheme();
-    return <Component {...props} theme={theme} />;
-  };
-};
+export const useTheme = () => useContext(ThemeContext);
 
 export default ThemeProvider;

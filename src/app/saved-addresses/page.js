@@ -1,5 +1,12 @@
 'use client';
 
-import SavedAddressesPage from "@/features/user/UserDetails/SavedAddressesPage";
+import MainLayout from "@/app-shell/MainLayout";
+import AddressesPage from "@/features/account/AddressesPage";
 
-export default SavedAddressesPage;
+export default function SavedAddressesRoute() {
+  return (
+    <MainLayout>
+      <AddressesPage />
+    </MainLayout>
+  );
+}

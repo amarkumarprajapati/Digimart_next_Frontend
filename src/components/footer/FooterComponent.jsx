@@ -1,77 +1,92 @@
- 
-import { Mail, Phone, Facebook, Twitter, Instagram } from "lucide-react";
+import { Facebook, Twitter, Instagram } from "lucide-react";
 import Link from "next/link";
 
+const SECTIONS = [
+  {
+    title: "Shop",
+    links: [
+      { label: "All Products", href: "/products" },
+      { label: "Clothing", href: "/products" },
+      { label: "Home", href: "/products" },
+      { label: "Beauty", href: "/products" },
+      { label: "Accessories", href: "/products" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About Us", href: "/about" },
+      { label: "Contact", href: "/contact" },
+      { label: "FAQ", href: "/faq" },
+      { label: "Terms", href: "/terms" },
+    ],
+  },
+  {
+    title: "Account",
+    links: [
+      { label: "My Profile", href: "/my-profile" },
+      { label: "Orders", href: "/orders" },
+      { label: "Wishlist", href: "/favorites" },
+      { label: "Coupons", href: "/coupons" },
+    ],
+  },
+];
+
 const Footer = () => {
-  const currentYear = new Date().getFullYear();
+  const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-
-        {/* Top Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-
+    <footer className="mt-auto border-t border-line bg-surface">
+      <div className="container-page py-12">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
           {/* Brand */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-              DigiMart
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed max-w-sm">
-              Premium electronics and latest technology at the best price.
+          <div className="col-span-2">
+            <span className="text-xl font-semibold tracking-tight text-ink">
+              Digi<span className="text-brand">Mart</span>
+            </span>
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
+              Considered products for everyday life — clothing, home goods, beauty
+              and accessories. Fair prices, free returns.
             </p>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
-              Quick Links
-            </h3>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/products" className="text-gray-600 dark:text-gray-400 hover:text-[#088395] dark:hover:text-[#7AB2B2]">Products</Link></li>
-              <li><Link href="/about" className="text-gray-600 dark:text-gray-400 hover:text-[#088395] dark:hover:text-[#7AB2B2]">About Us</Link></li>
-              <li><Link href="/contact" className="text-gray-600 dark:text-gray-400 hover:text-[#088395] dark:hover:text-[#7AB2B2]">Contact</Link></li>
-            </ul>
-          </div>
-
-          {/* Support */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
-              Support
-            </h3>
-            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                support@digimart.com
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                +1 234 567 890
-              </div>
+            <div className="mt-5 flex items-center gap-2">
+              {[Facebook, Twitter, Instagram].map((Icon, i) => (
+                <a
+                  key={i}
+                  href="#"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-muted transition-colors hover:border-brand hover:text-brand"
+                >
+                  <Icon className="h-4 w-4" />
+                </a>
+              ))}
             </div>
           </div>
 
+          {SECTIONS.map((section) => (
+            <div key={section.title}>
+              <h3 className="text-sm font-semibold text-ink">{section.title}</h3>
+              <ul className="mt-4 space-y-2.5">
+                {section.links.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-muted transition-colors hover:text-brand"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-200 dark:border-gray-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-
-          <p className="text-sm text-gray-500 dark:text-gray-500">
-            © {currentYear} DigiMart. All rights reserved.
-          </p>
-
-          <div className="flex items-center gap-4">
-            <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-[#088395] dark:hover:text-[#7AB2B2]">
-              <Facebook className="w-5 h-5" />
-            </a>
-            <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-[#088395] dark:hover:text-[#7AB2B2]">
-              <Twitter className="w-5 h-5" />
-            </a>
-            <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-[#088395] dark:hover:text-[#7AB2B2]">
-              <Instagram className="w-5 h-5" />
-            </a>
+        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-line pt-6 sm:flex-row">
+          <p className="text-sm text-muted">© {year} DigiMart. All rights reserved.</p>
+          <div className="flex items-center gap-5 text-sm text-muted">
+            <span>Secure checkout</span>
+            <span>Free returns</span>
+            <span>support@digimart.com</span>
           </div>
-
         </div>
       </div>
     </footer>

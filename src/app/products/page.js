@@ -1,12 +1,15 @@
 'use client';
 
 import { Suspense } from "react";
+import MainLayout from "@/app-shell/MainLayout";
 import AllProductsPage from "@/features/products/listing/AllProductsPage";
 
 export default function ProductsRoute() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 dark:bg-gray-950" />}>
-      <AllProductsPage />
-    </Suspense>
+    <MainLayout>
+      <Suspense fallback={<div className="min-h-screen bg-canvas" />}>
+        <AllProductsPage />
+      </Suspense>
+    </MainLayout>
   );
 }

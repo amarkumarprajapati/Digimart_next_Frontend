@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux";
 import { setAuthStatus, setUser } from "@/store/slices/authSlice";
 import { toastError, toastSuccess } from "@/lib/toast";
 import { authService } from "@/services/api/endpoints";
+import { auth } from "@/lib/auth";
 import { GoogleLogin } from '@react-oauth/google';
 
 const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
@@ -57,25 +58,12 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
             });
 
             if (response?.data?.success) {
-                const { accessToken, refreshToken } = response.data.data;
-                
-                // Save tokens in localStorage
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem('accessToken', accessToken);
-                    localStorage.setItem('refreshToken', refreshToken);
-                }
+                const { accessToken, refreshToken, user } = response.data.data;
 
-                // Fetch user details
-                try {
-                    const meResponse = await authService.getCurrentUser();
-                    if (meResponse?.data) {
-                        dispatch(setAuthStatus(true));
-                        dispatch(setUser(meResponse.data.data || meResponse.data));
-                    }
-                } catch {
-                    dispatch(setAuthStatus(true));
-                }
-                
+                auth.login(accessToken, refreshToken, user);
+                dispatch(setAuthStatus(true));
+                if (user) dispatch(setUser(user));
+
                 toastSuccess("Login successful!");
                 onClose();
             } else {
@@ -136,21 +124,10 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
             const response = await authService.googleLogin(credential);
 
             if (response?.data?.success) {
-                const { accessToken, refreshToken } = response.data.data;
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem('accessToken', accessToken);
-                    localStorage.setItem('refreshToken', refreshToken);
-                }
-
-                try {
-                    const meResponse = await authService.getCurrentUser();
-                    if (meResponse?.data) {
-                        dispatch(setAuthStatus(true));
-                        dispatch(setUser(meResponse.data.data || meResponse.data));
-                    }
-                } catch {
-                    dispatch(setAuthStatus(true));
-                }
+                const { accessToken, refreshToken, user } = response.data.data;
+                auth.login(accessToken, refreshToken, user);
+                dispatch(setAuthStatus(true));
+                if (user) dispatch(setUser(user));
 
                 toastSuccess("Google Login successful!");
                 onClose();
@@ -232,13 +209,13 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                             <div className="space-y-1">
                                 <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Email</label>
                                 <div className="relative group">
-                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-cyan-600 transition-colors" />
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
                                     <input
                                         type="email"
                                         value={signInData.email}
                                         onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
                                         placeholder="Enter your email"
-                                        className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-600 outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                        className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
                                         required
                                     />
                                 </div>
@@ -247,13 +224,13 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                             <div className="space-y-1">
                                 <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Password</label>
                                 <div className="relative group">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-cyan-600 transition-colors" />
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         value={signInData.password}
                                         onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
                                         placeholder="Enter password"
-                                        className="w-full h-10 pl-9 pr-9 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-600 outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                        className="w-full h-10 pl-9 pr-9 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
                                         required
                                     />
                                     <button
@@ -266,14 +243,14 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                                 </div>
                             </div>
 
-                            <button type="button" className="block ml-auto text-xs font-semibold text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 translate-y-[-4px]">
+                            <button type="button" className="block ml-auto text-xs font-semibold text-brand hover:text-brand-hover translate-y-[-4px]">
                                 Forgot Password?
                             </button>
 
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full h-10 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-lg shadow-md shadow-cyan-500/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                                className="w-full h-10 bg-brand hover:bg-brand-hover text-white font-semibold rounded-lg transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
                             >
                                 {isLoading ? (
                                     <span className="flex items-center gap-2">
@@ -288,13 +265,13 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                             <div className="space-y-1">
                                 <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Full Name</label>
                                 <div className="relative group">
-                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-cyan-600 transition-colors" />
+                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
                                     <input
                                         type="text"
                                         value={signUpData.name}
                                         onChange={(e) => setSignUpData({ ...signUpData, name: e.target.value })}
                                         placeholder="Enter your name"
-                                        className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-600 outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                        className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
                                         required
                                     />
                                 </div>
@@ -302,13 +279,13 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                             <div className="space-y-1">
                                 <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Email</label>
                                 <div className="relative group">
-                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-cyan-600 transition-colors" />
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
                                     <input
                                         type="email"
                                         value={signUpData.email}
                                         onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
                                         placeholder="Enter your email"
-                                        className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-600 outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                        className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
                                         required
                                     />
                                 </div>
@@ -316,13 +293,13 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                             <div className="space-y-1">
                                 <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Password</label>
                                 <div className="relative group">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-cyan-600 transition-colors" />
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         value={signUpData.password}
                                         onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
                                         placeholder="Create Password"
-                                        className="w-full h-10 pl-9 pr-9 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-600 outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                        className="w-full h-10 pl-9 pr-9 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
                                         required
                                     />
                                     <button
@@ -337,13 +314,13 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                             <div className="space-y-1">
                                 <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Confirm Password</label>
                                 <div className="relative group">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-cyan-600 transition-colors" />
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         value={signUpData.confirmPassword}
                                         onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}
                                         placeholder="Confirm Password"
-                                        className="w-full h-10 pl-9 pr-9 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-600 outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                        className="w-full h-10 pl-9 pr-9 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
                                         required
                                     />
                                 </div>
@@ -351,7 +328,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full h-10 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-lg shadow-md shadow-cyan-500/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2 text-sm"
+                                className="w-full h-10 bg-brand hover:bg-brand-hover text-white font-semibold rounded-lg transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2 text-sm"
                             >
                                 {isLoading ? (
                                     <span className="flex items-center gap-2">
@@ -369,7 +346,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                             {activeTab === "signin" ? "Didn't have an account?" : "Already have an account?"}
                             <button
                                 onClick={() => handleSwitchTab(activeTab === "signin" ? "signup" : "signin")}
-                                className="ml-1.5 font-bold text-cyan-600 hover:text-cyan-700 transition-all"
+                                className="ml-1.5 font-semibold text-brand hover:text-brand-hover transition-all"
                             >
                                 {activeTab === "signin" ? "Sign Up" : "Login"}
                             </button>

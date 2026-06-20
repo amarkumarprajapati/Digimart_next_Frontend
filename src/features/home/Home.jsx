@@ -10,11 +10,14 @@ import TrendingProducts from "./Components/TrendingProducts";
 import { useDispatch } from "react-redux";
 import { setProducts } from "@/store/slices/productSlice";
 import { initScrollReveal } from "@/hooks/useScrollReveal";
-import { usePopularProducts } from "@/hooks/useProductQueries";
+import { useProducts } from "@/services/api/product";
 
 const Home = () => {
   const dispatch = useDispatch();
-  const { data: popularProducts = [], isLoading: loading } = usePopularProducts(20);
+  const { data: popularProducts = [], isLoading: loading } = useProducts(1, 20, "", {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
   useEffect(() => {
     if (popularProducts.length > 0) {
@@ -40,7 +43,7 @@ const Home = () => {
         <Popular />
       </div>
       <div className="section-reveal">
-        <NewArrivals popularProducts={popularProducts} />
+        <NewArrivals />
       </div>
       <div className="section-reveal">
         <TrendingProducts />

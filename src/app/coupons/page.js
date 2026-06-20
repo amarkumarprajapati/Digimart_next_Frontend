@@ -1,5 +1,12 @@
 'use client';
 
-import CouponsPage from "@/features/user/UserDetails/CouponsPage";
+import MainLayout from "@/app-shell/MainLayout";
+import CouponsPage from "@/features/account/CouponsPage";
 
-export default CouponsPage;
+export default function CouponsRoute() {
+  return (
+    <MainLayout>
+      <CouponsPage />
+    </MainLayout>
+  );
+}

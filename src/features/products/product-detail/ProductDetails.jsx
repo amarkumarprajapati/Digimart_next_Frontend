@@ -15,7 +15,6 @@ const ProductDetailsPage = () => {
   const { currentProduct, similarProducts, recentlyViewed } =
     useSelector((state) => state.currentProduct);
 
-  // Extract full API data from response
   const [fullApiData, setFullApiData] = useState(null);
   const [reviewsLoading, setReviewsLoading] = useState(true);
 
@@ -53,33 +52,30 @@ const ProductDetailsPage = () => {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-950 min-h-screen">
+    <div className="min-h-screen bg-canvas">
       {/* Main Product Section */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 md:p-8">
+      <div className="container-page py-8">
+        <div className="card p-5 md:p-8">
           <ProductMain currentProduct={currentProduct} />
         </div>
       </div>
 
-
       {/* Reviews Section */}
-      <div className="border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950">
-        <div className="container mx-auto px-4">
-          <ReviewsSection
-            product={currentProduct}
-            reviews={fullApiData?.detailedReviews?.reviews || []}
-            ratingDistribution={fullApiData?.reviews?.ratingDistribution || []}
-            averageRating={fullApiData?.reviews?.averageRating || currentProduct?.rating || 0}
-            totalReviews={fullApiData?.reviews?.totalReviews || 0}
-          />
-        </div>
+      <div className="container-page">
+        <ReviewsSection
+          product={currentProduct}
+          reviews={fullApiData?.detailedReviews?.reviews || []}
+          ratingDistribution={fullApiData?.reviews?.ratingDistribution || []}
+          averageRating={fullApiData?.reviews?.averageRating || currentProduct?.rating || 0}
+          totalReviews={fullApiData?.reviews?.totalReviews || 0}
+        />
       </div>
 
-      {/* Popular This Week Section */}
-      <div className="border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto px-4">
-          <PopularThisWeek products={fullApiData?.relatedProducts || similarProducts || recentlyViewed} />
-        </div>
+      {/* Related products */}
+      <div className="container-page pb-12">
+        <PopularThisWeek
+          products={fullApiData?.relatedProducts || similarProducts || recentlyViewed}
+        />
       </div>
     </div>
   );

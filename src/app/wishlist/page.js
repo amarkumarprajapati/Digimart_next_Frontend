@@ -1,5 +1,12 @@
 'use client';
 
-import WishlistPage from "@/features/user/UserDetails/WishlistPage";
+import MainLayout from "@/app-shell/MainLayout";
+import WishlistPage from "@/features/account/WishlistPage";
 
-export default WishlistPage;
+export default function WishlistRoute() {
+  return (
+    <MainLayout>
+      <WishlistPage />
+    </MainLayout>
+  );
+}

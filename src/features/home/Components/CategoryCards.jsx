@@ -1,68 +1,68 @@
+'use client';
+
 import { useRouter } from "next/navigation";
-import {
-  Smartphone,
-  Laptop,
-  Tv,
-  Headphones,
-  Watch,
-  LayoutGrid,
-} from "lucide-react";
 
 const categories = [
-  { id: 1, name: "Mobiles", icon: Smartphone, count: "120+ Items" },
-  { id: 2, name: "Laptops", icon: Laptop, count: "85+ Items" },
-  { id: 3, name: "TVs", icon: Tv, count: "45+ Items" },
-  { id: 4, name: "Headphones", icon: Headphones, count: "200+ Items" },
-  { id: 5, name: "Watches", icon: Watch, count: "150+ Items" },
+  {
+    name: "Clothing",
+    image:
+      "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    name: "Home",
+    image:
+      "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    name: "Beauty",
+    image:
+      "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    name: "Accessories",
+    image:
+      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80",
+  },
 ];
 
 const CategoryCards = () => {
   const router = useRouter();
 
   return (
-    <section className="w-full py-16 bg-white dark:bg-slate-950/20">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        {/* Premium Section Header */}
-        <div className="flex flex-col items-center text-center mb-10">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tighter mb-6">
-            Shop by <span className="text-gradient">Experience</span>
-          </h2>
-          <p className="text-slate-500 dark:text-slate-400 text-lg max-w-2xl mx-auto font-medium">
-            Discover a world of premium technology across our meticulously
-            selected categories.
-          </p>
-        </div>
+    <section className="container-page py-12">
+      <div className="mb-6">
+        <h2 className="text-2xl font-semibold tracking-tight text-ink">
+          Shop by category
+        </h2>
+        <p className="mt-1 text-sm text-muted">
+          Find what you need across our core collections.
+        </p>
+      </div>
 
-        {/* Minimalist Grid Layout */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
-          {categories.map((category) => {
-            const Icon = category.icon;
-            return (
-              <div
-                key={category.id}
-                onClick={() =>
-                  router.push(`/products?category=${category.name.toLowerCase()}`)
-                }
-                className="group cursor-pointer flex flex-col items-center"
-              >
-                {/* Icon Container */}
-                <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-[2rem] bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center mb-6 transition-all duration-700 ease-premium group-hover:scale-110 group-hover:-rotate-6 group-hover:bg-white group-hover:shadow-hover group-hover:border-cyan-500/20">
-                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-cyan-500/0 group-hover:from-cyan-500/5 group-hover:to-cyan-500/10 rounded-[2rem] transition-all duration-700" />
-                  <Icon className="w-10 h-10 md:w-12 md:h-12 text-slate-400 group-hover:text-cyan-500 transition-colors duration-700" />
-                </div>
-
-                {/* Text Content */}
-                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-2 transition-all group-hover:text-cyan-600">
-                  {category.name}
-                </h3>
-                <div className="h-1 w-0 bg-cyan-500 rounded-full transition-all duration-500 group-hover:w-8 mb-2" />
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter transition-all group-hover:text-slate-500">
-                  {category.count}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        {categories.map((category) => (
+          <button
+            key={category.name}
+            onClick={() =>
+              router.push(`/products?category=${category.name.toLowerCase()}`)
+            }
+            className="group relative overflow-hidden rounded-xl border border-line bg-surface text-left"
+          >
+            <div className="aspect-[4/3] overflow-hidden">
+              <img
+                src={category.image}
+                alt={category.name}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            </div>
+            <div className="flex items-center justify-between p-4">
+              <span className="text-sm font-semibold text-ink">{category.name}</span>
+              <span className="text-sm text-brand opacity-0 transition-opacity group-hover:opacity-100">
+                Shop →
+              </span>
+            </div>
+          </button>
+        ))}
       </div>
     </section>
   );

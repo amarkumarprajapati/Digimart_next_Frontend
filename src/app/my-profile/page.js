@@ -1,5 +1,12 @@
 'use client';
 
-import MyProfilePage from "@/features/user/UserDetails/MyProfilePage";
+import MainLayout from "@/app-shell/MainLayout";
+import ProfilePage from "@/features/account/ProfilePage";
 
-export default MyProfilePage;
+export default function MyProfileRoute() {
+  return (
+    <MainLayout>
+      <ProfilePage />
+    </MainLayout>
+  );
+}

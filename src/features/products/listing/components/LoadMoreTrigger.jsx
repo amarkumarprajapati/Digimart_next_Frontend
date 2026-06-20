@@ -20,17 +20,14 @@ const LoadMoreTrigger = ({ loaderRef, isFetchingNextPage, hasNextPage, onLoadMor
   }, [hasNextPage, isFetchingNextPage, onLoadMore, ref]);
 
   return (
-    <div ref={ref} className="py-20 flex justify-center">
+    <div ref={ref} className="flex justify-center py-12">
       {isFetchingNextPage ? (
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-6 h-6 text-[#088395] animate-spin" />
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Discovering more items...</p>
+        <div className="flex items-center gap-2 text-sm text-muted">
+          <Loader2 className="h-4 w-4 animate-spin text-brand" />
+          Loading more...
         </div>
       ) : !hasNextPage ? (
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-px w-20 bg-gray-200 dark:bg-gray-800" />
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">You&apos;ve reached the end of the collection</p>
-        </div>
+        <p className="text-sm text-muted">You&apos;ve reached the end.</p>
       ) : null}
     </div>
   );

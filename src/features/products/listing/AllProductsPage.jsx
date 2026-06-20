@@ -1,101 +1,141 @@
+'use client';
+
 import { useState, useMemo, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useProducts } from "@/services/api/product";
-import ProductCard from "@/components/ProductCard/ProductCard";
-import ProfileBreadcrumb from "@/components/Breadcrumbs/ProfileBreadcrumb";
-import FiltersSidebar from "./components/FiltersSidebar";
 import ProductGrid from "./components/ProductGrid";
 import EmptyState from "./components/EmptyState";
 import LoadingState from "./components/LoadingState";
 import LoadMoreTrigger from "./components/LoadMoreTrigger";
 
+const SORT_OPTIONS = [
+  { value: "newest", label: "Newest" },
+  { value: "price-low", label: "Price: Low to High" },
+  { value: "price-high", label: "Price: High to Low" },
+];
+
 const AllProductsPage = () => {
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
+  const initialCategory = searchParams.get("category") || "All";
+  const initialSearch = searchParams.get("search") || "";
+
   const [page, setPage] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedPriceRange, setSelectedPriceRange] = useState({ label: "All Prices", min: 0, max: Infinity });
-  const [selectedRating, setSelectedRating] = useState(0);
-  const [minDiscount, setMinDiscount] = useState(0);
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [searchQuery] = useState(initialSearch);
   const [sortBy, setSortBy] = useState("newest");
 
   const loaderRef = useRef(null);
 
-  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useProducts(
-    page,
-    12,
-    sortBy === "newest" ? "-created" : sortBy === "price-low" ? "Product_price" : "-Product_price",
-    { enabled: true }
-  );
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useProducts(
+      page,
+      12,
+      sortBy === "newest"
+        ? "-created"
+        : sortBy === "price-low"
+        ? "Product_price"
+        : "-Product_price",
+      { enabled: true }
+    );
 
-  const products = data || [];
+  const allProducts = data || [];
 
   const categories = useMemo(() => {
-    if (products.length > 0) {
-      return ["All", ...new Set(products.map((p) => p.category).filter(Boolean))];
+    const cats = new Set(
+      allProducts.map((p) => p.category || p.Product_type).filter(Boolean)
+    );
+    return ["All", ...cats];
+  }, [allProducts]);
+
+  const products = useMemo(() => {
+    let list = allProducts;
+    if (selectedCategory !== "All") {
+      list = list.filter(
+        (p) =>
+          (p.category || p.Product_type || "").toLowerCase() ===
+          selectedCategory.toLowerCase()
+      );
     }
-    return ["All"];
-  }, [products]);
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter((p) =>
+        (p.name || p.Product_name || "").toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [allProducts, selectedCategory, searchQuery]);
 
   const handleReset = () => {
     setSelectedCategory("All");
-    setSelectedPriceRange({ label: "All Prices", min: 0, max: Infinity });
-    setSelectedRating(0);
-    setMinDiscount(0);
-    setSearchQuery("");
     setSortBy("newest");
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      {/* Top Banner / Breadcrumb Area */}
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 pt-3 pb-2 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex flex-col">
-              <ProfileBreadcrumb />
-              <div className="flex items-baseline gap-2 mt-1">
-                <h1 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tighter">Collections</h1>
-                <span className="text-[9px] font-black text-[#088395] uppercase tracking-widest">{products.length}+ Items</span>
-              </div>
-            </div>
+    <div className="min-h-screen bg-canvas">
+      <div className="container-page py-8">
+        {/* Heading */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold tracking-tight text-ink">
+            {selectedCategory === "All" ? "All products" : selectedCategory}
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            {isLoading ? "Loading..." : `${products.length} results`}
+          </p>
+        </div>
+
+        {/* Filter bar */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {categories.slice(0, 6).map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
+                  selectedCategory === cat
+                    ? "bg-brand text-white"
+                    : "text-body hover:bg-surface-2"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-muted">Sort by</label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="field h-9 px-3 text-sm"
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-        <div className="flex gap-10">
-          <FiltersSidebar
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            selectedPriceRange={selectedPriceRange}
-            onPriceRangeChange={setSelectedPriceRange}
-            selectedRating={selectedRating}
-            onRatingChange={setSelectedRating}
-            minDiscount={minDiscount}
-            onDiscountChange={setMinDiscount}
-            onReset={handleReset}
-          />
-
-          <main className="flex-1">
-            {isLoading ? (
-              <LoadingState />
-            ) : products.length === 0 ? (
-              <EmptyState onReset={handleReset} />
-            ) : (
-              <>
-                <ProductGrid products={products} />
-                <LoadMoreTrigger
-                  loaderRef={loaderRef}
-                  isFetchingNextPage={isFetchingNextPage}
-                  hasNextPage={hasNextPage}
-                  onLoadMore={() => setPage((p) => p + 1)}
-                />
-              </>
-            )}
-          </main>
-        </div>
+        {/* Grid */}
+        {isLoading ? (
+          <LoadingState />
+        ) : products.length === 0 ? (
+          <EmptyState onReset={handleReset} />
+        ) : (
+          <>
+            <ProductGrid products={products} />
+            <LoadMoreTrigger
+              loaderRef={loaderRef}
+              isFetchingNextPage={isFetchingNextPage}
+              hasNextPage={hasNextPage}
+              onLoadMore={() => {
+                setPage((p) => p + 1);
+                fetchNextPage?.();
+              }}
+            />
+          </>
+        )}
       </div>
     </div>
   );

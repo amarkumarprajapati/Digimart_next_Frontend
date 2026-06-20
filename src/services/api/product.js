@@ -26,17 +26,23 @@ export const productKeys = {
 
 export const mapProduct = (p = {}) => ({
   ...p,
-  _id: p._id,
+  _id: p._id || p.Product_ID,
+  Product_ID: p.Product_ID,
   name: p.Product_name || p.name,
+  Product_name: p.Product_name || p.name,
   image: p.Product_image || p.image,
+  Product_image: p.Product_image || p.image,
   price: typeof p.Product_price !== "undefined" ? p.Product_price : p.price,
-  discount: p.Product_discount || p.discount,
+  Product_price: p.Product_price ?? p.price,
+  discount: p.Product_discount ?? p.discount ?? 0,
+  Product_discount: p.Product_discount ?? p.discount ?? 0,
   tags: p.Product_tags
     ? p.Product_tags.split(",").map((t) => t.trim())
     : p.tags || [],
   rating: p.rating || 0,
   slug: p.slug || "",
   type: p.Product_type || p.type,
+  Product_type: p.Product_type || p.type,
 });
 
 const mapList = (list) => (Array.isArray(list) ? list.map(mapProduct) : []);
@@ -76,27 +82,30 @@ export const useProductBySlug = (slug, options = {}) =>
     ...options,
   });
 
-export const usePopularProducts = (limit = 10, options = {}) =>
+export const usePopularProducts = (limit = 20, options = {}) =>
   useQuery({
-    queryKey: productKeys.popular(limit),
-    queryFn: async () => mapList(unwrap(await productService.getPopularProducts(limit))),
+    queryKey: productKeys.list(1, limit, ""),
+    queryFn: async () => mapList(unwrap(await productService.getAllProducts(1, limit))),
     staleTime: 5 * 60 * 1000,
+    retry: false,
     ...options,
   });
 
 export const useNewArrivals = (options = {}) =>
   useQuery({
-    queryKey: productKeys.newArrivals,
-    queryFn: async () => mapList(unwrap(await productService.getNewArrivals())),
+    queryKey: productKeys.list(1, 20, "new-arrivals"),
+    queryFn: async () => mapList(unwrap(await productService.getAllProducts(1, 20))),
     staleTime: 5 * 60 * 1000,
+    retry: false,
     ...options,
   });
 
 export const useTrendingProducts = (options = {}) =>
   useQuery({
-    queryKey: productKeys.trending,
-    queryFn: async () => mapList(unwrap(await productService.getTrendingProducts())),
+    queryKey: productKeys.list(1, 20, "trending"),
+    queryFn: async () => mapList(unwrap(await productService.getAllProducts(1, 20))),
     staleTime: 5 * 60 * 1000,
+    retry: false,
     ...options,
   });
 
