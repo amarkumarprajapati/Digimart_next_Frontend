@@ -3,7 +3,7 @@ import api from "./client";
 // ---------- AUTH ----------
 export const authService = {
   register: (data) => api.post("/v1/auth/register", data),
-  login: (data) => api.post("/v1/auth/login", data),
+  login: (data) => api.post("/auth/login", data),
   logout: () => api.post("/v1/auth/logout"),
   getCurrentUser: () => api.get("/v1/auth/me"),
   refreshToken: (refreshToken) => api.post("/v1/auth/refresh-token", { refreshToken }),
@@ -34,9 +34,9 @@ export const productService = {
     api.get(`/products?page=${page}&limit=${limit}${sort ? `&sort=${encodeURIComponent(sort)}` : ""}`),
   searchProducts: (q, limit = 10) =>
     api.get(`/user/products/search?q=${encodeURIComponent(q)}&limit=${limit}`),
-  getProductById: (id) => api.get(`/user/products/${id}`),
+  getProductById: (id) => api.get(`/products/${id}`),
   getProductBySlug: (slug) => api.get(`/user/products/slug/${slug}`),
-  getProductDetail: (id) => api.get(`/user/products/${id}`),
+  getProductDetail: (id) => api.get(`/products/${id}`),
   getPopularProducts: (page = 1, limit = 10) =>
     api.get(`/user/products/popular?page=${page}&limit=${limit}`),
   getNewArrivals: (page = 1, limit = 10) =>

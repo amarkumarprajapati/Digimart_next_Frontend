@@ -26,7 +26,7 @@ export const productKeys = {
 
 export const mapProduct = (p = {}) => ({
   ...p,
-  _id: p._id || p.Product_ID,
+  _id: p._id ?? p.id,
   Product_ID: p.Product_ID,
   name: p.Product_name || p.name,
   Product_name: p.Product_name || p.name,
@@ -43,17 +43,26 @@ export const mapProduct = (p = {}) => ({
   slug: p.slug || "",
   type: p.Product_type || p.type,
   Product_type: p.Product_type || p.type,
+  category:
+    typeof p.category === "object" && p.category?.name
+      ? p.category.name
+      : p.category || p.Product_type || "",
 });
 
 const mapList = (list) => (Array.isArray(list) ? list.map(mapProduct) : []);
 
+const extractProductList = (data) => {
+  if (Array.isArray(data)) return mapList(data);
+  if (Array.isArray(data?.items)) return mapList(data.items);
+  if (Array.isArray(data?.products)) return mapList(data.products);
+  return [];
+};
+
 export const useProducts = (page = 1, limit = 10, sort = "", options = {}) =>
   useQuery({
     queryKey: productKeys.list(page, limit, sort),
-    queryFn: async () => {
-      const data = unwrap(await productService.getAllProducts(page, limit, sort));
-      return Array.isArray(data) ? mapList(data) : { ...data, items: mapList(data?.items) };
-    },
+    queryFn: async () =>
+      extractProductList(unwrap(await productService.getAllProducts(page, limit, sort))),
     staleTime: 5 * 60 * 1000,
     ...options,
   });
@@ -61,7 +70,8 @@ export const useProducts = (page = 1, limit = 10, sort = "", options = {}) =>
 export const useSearchProducts = (q, limit = 10, options = {}) =>
   useQuery({
     queryKey: productKeys.search(q, limit),
-    queryFn: async () => mapList(unwrap(await productService.searchProducts(q, limit))),
+    queryFn: async () =>
+      extractProductList(unwrap(await productService.searchProducts(q, limit))),
     enabled: !!q,
     ...options,
   });
@@ -85,7 +95,8 @@ export const useProductBySlug = (slug, options = {}) =>
 export const usePopularProducts = (limit = 20, options = {}) =>
   useQuery({
     queryKey: productKeys.list(1, limit, ""),
-    queryFn: async () => mapList(unwrap(await productService.getAllProducts(1, limit))),
+    queryFn: async () =>
+      extractProductList(unwrap(await productService.getAllProducts(1, limit))),
     staleTime: 5 * 60 * 1000,
     retry: false,
     ...options,
@@ -94,7 +105,8 @@ export const usePopularProducts = (limit = 20, options = {}) =>
 export const useNewArrivals = (options = {}) =>
   useQuery({
     queryKey: productKeys.list(1, 20, "new-arrivals"),
-    queryFn: async () => mapList(unwrap(await productService.getAllProducts(1, 20))),
+    queryFn: async () =>
+      extractProductList(unwrap(await productService.getAllProducts(1, 20))),
     staleTime: 5 * 60 * 1000,
     retry: false,
     ...options,
@@ -103,7 +115,8 @@ export const useNewArrivals = (options = {}) =>
 export const useTrendingProducts = (options = {}) =>
   useQuery({
     queryKey: productKeys.list(1, 20, "trending"),
-    queryFn: async () => mapList(unwrap(await productService.getAllProducts(1, 20))),
+    queryFn: async () =>
+      extractProductList(unwrap(await productService.getAllProducts(1, 20))),
     staleTime: 5 * 60 * 1000,
     retry: false,
     ...options,
@@ -112,7 +125,8 @@ export const useTrendingProducts = (options = {}) =>
 export const useFeaturedProducts = (options = {}) =>
   useQuery({
     queryKey: productKeys.featured,
-    queryFn: async () => mapList(unwrap(await productService.getFeaturedProducts())),
+    queryFn: async () =>
+      extractProductList(unwrap(await productService.getFeaturedProducts())),
     staleTime: 5 * 60 * 1000,
     ...options,
   });
@@ -120,10 +134,10 @@ export const useFeaturedProducts = (options = {}) =>
 export const useProductsByCategory = (category, page = 1, limit = 10, options = {}) =>
   useQuery({
     queryKey: productKeys.byCategory(category, page, limit),
-    queryFn: async () => {
-      const data = unwrap(await productService.getProductsByCategory(category, page, limit));
-      return Array.isArray(data) ? mapList(data) : { ...data, items: mapList(data?.items) };
-    },
+    queryFn: async () =>
+      extractProductList(
+        unwrap(await productService.getProductsByCategory(category, page, limit))
+      ),
     enabled: !!category,
     ...options,
   });
@@ -131,7 +145,8 @@ export const useProductsByCategory = (category, page = 1, limit = 10, options = 
 export const useSimilarProducts = (id, options = {}) =>
   useQuery({
     queryKey: productKeys.similar(id),
-    queryFn: async () => mapList(unwrap(await productService.getSimilarProducts(id))),
+    queryFn: async () =>
+      extractProductList(unwrap(await productService.getSimilarProducts(id))),
     enabled: !!id,
     ...options,
   });
@@ -139,7 +154,8 @@ export const useSimilarProducts = (id, options = {}) =>
 export const useRecentlyViewedProducts = (options = {}) =>
   useQuery({
     queryKey: productKeys.recentlyViewed,
-    queryFn: async () => mapList(unwrap(await productService.getRecentlyViewedProducts())),
+    queryFn: async () =>
+      extractProductList(unwrap(await productService.getRecentlyViewedProducts())),
     ...options,
   });
 

@@ -1,14 +1,15 @@
 /* eslint-disable */
 import { useRouter } from "next/navigation";
+import { productDetailRoute } from "@/lib/routes";
 
 const SuggestionsDropdown = ({ suggestions, onSuggestionClick }) => {
     const router = useRouter();
 
-    const handleClick = (slug) => {
+    const handleClick = (product) => {
         if (onSuggestionClick) {
-            onSuggestionClick(slug);
+            onSuggestionClick(product);
         } else {
-            router.push(`/product/${slug}`);
+            router.push(productDetailRoute(product));
         }
     };
 
@@ -29,7 +30,7 @@ const SuggestionsDropdown = ({ suggestions, onSuggestionClick }) => {
                 return (
                     <div
                         key={product._id}
-                        onClick={() => handleClick(product.slug)}
+                        onClick={() => handleClick(product)}
                         className="flex items-center gap-4 p-3 hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer transition-colors border-b border-gray-100 dark:border-gray-800 last:border-b-0"
                     >
                         {/* Product Image */}

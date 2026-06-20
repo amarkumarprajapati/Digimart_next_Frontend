@@ -7,21 +7,22 @@ import { useDispatch, useSelector } from "react-redux";
 import { setCurrentProduct } from "@/store/slices/currentProductSlice";
 import { addToCart, updateQuantity, removeItem } from "@/store/slices/cartSlice";
 import { auth } from "@/lib/auth";
+import { productDetailRoute } from "@/lib/routes";
 import { useAuthModal } from "@/hooks/useAuthModal";
 
 const PLACEHOLDER =
   "https://placehold.co/400x500/f1f5f9/94a3b8?text=No+Image";
 
-const ProductCard = ({ product, path = "/product-details", loading = false }) => {
+const ProductCard = ({ product, loading = false }) => {
   const router = useRouter();
   const dispatch = useDispatch();
   const { openSignIn } = useAuthModal();
   const [isFavorite, setIsFavorite] = useState(false);
 
   const cartItems = useSelector((state) => state?.cart?.cartItems || []);
-  const productId = product?._id || product?.id || product?.Product_ID;
+  const productId = product?._id ?? product?.id;
   const cartItem = cartItems.find(
-    (item) => (item._id || item.id || item.Product_ID) === productId
+    (item) => (item._id ?? item.id) === productId
   );
 
   const name = product?.name || product?.Product_name;
@@ -31,9 +32,9 @@ const ProductCard = ({ product, path = "/product-details", loading = false }) =>
   const discount = Number(product?.discount || product?.Product_discount || 0);
 
   const handleProductClick = () => {
-    if (loading) return;
+    if (loading || !productId) return;
     dispatch(setCurrentProduct(product));
-    router.push(`${path}/${productId}`);
+    router.push(productDetailRoute(productId));
   };
 
   const handleAddToCart = (e) => {
@@ -46,6 +47,7 @@ const ProductCard = ({ product, path = "/product-details", loading = false }) =>
     dispatch(
       addToCart({
         ...product,
+        _id: productId,
         Product_ID: productId,
         Product_price: price,
         Product_name: name,

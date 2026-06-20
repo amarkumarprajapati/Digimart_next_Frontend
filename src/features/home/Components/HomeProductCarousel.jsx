@@ -61,13 +61,10 @@ const HomeProductCarousel = ({ title, subtitle }) => {
             ))
           : products.map((product) => (
               <div
-                key={product.Product_ID || product._id || product.slug}
+                key={product._id || product.slug}
                 className={CARD_WIDTH}
               >
-                <ProductCard
-                  product={product}
-                  path={product.slug ? `/product/${product.slug}` : "/product-details"}
-                />
+                <ProductCard product={product} />
               </div>
             ))}
       </div>

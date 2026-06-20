@@ -13,7 +13,6 @@ const publicExact = ["/", "/products", "/cart", "/about", "/contact", "/faq", "/
 
 const isPublicPath = (pathname) => {
   if (publicExact.includes(pathname)) return true;
-  if (pathname.startsWith("/product/")) return true;
   if (pathname.startsWith("/product-details/")) return true;
   return false;
 };

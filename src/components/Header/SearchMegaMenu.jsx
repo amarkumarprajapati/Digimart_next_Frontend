@@ -19,6 +19,7 @@ import {
   Zap
 } from "lucide-react";
 import { productService } from "@/services/api/endpoints";
+import { productDetailRoute } from "@/lib/routes";
 
 const CATEGORIES = [
   { name: "All", icon: <Sparkles size={14} /> },
@@ -113,8 +114,7 @@ const SearchMegaMenu = ({ isOpen, onClose, initialQuery = "" }) => {
 
   const handleProductClick = (product) => {
     saveRecentSearch(query);
-    const slug = product.slug || product._id;
-    router.push(`/product/${slug}/${product._id}`);
+    router.push(productDetailRoute(product));
     onClose();
   };
 
