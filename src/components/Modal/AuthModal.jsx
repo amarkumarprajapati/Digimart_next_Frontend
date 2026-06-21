@@ -7,7 +7,7 @@ import { useDispatch } from "react-redux";
 import { setAuthStatus, setUser } from "@/store/slices/authSlice";
 import { toastError, toastSuccess } from "@/lib/toast";
 import { authService } from "@/services/api/endpoints";
-import { auth } from "@/lib/auth";
+import { auth, parseAuthSession } from "@/lib/auth";
 import { GoogleLogin } from '@react-oauth/google';
 
 const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
@@ -18,7 +18,8 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
     const dispatch = useDispatch();
     const [signInData, setSignInData] = useState({ email: "", password: "" });
     const [signUpData, setSignUpData] = useState({
-        name: "",
+        firstName: "",
+        lastName: "",
         email: "",
         password: "",
         confirmPassword: "",
@@ -28,7 +29,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
         if (isOpen) {
             setActiveTab(defaultTab);
             setSignInData({ email: "", password: "" });
-            setSignUpData({ name: "", email: "", password: "", confirmPassword: "" });
+            setSignUpData({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "" });
         }
     }, [isOpen, defaultTab]);
 
@@ -58,11 +59,15 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
             });
 
             if (response?.data?.success) {
-                const { accessToken, refreshToken, user } = response.data.data;
+                const session = parseAuthSession(response);
+                if (!session) {
+                    toastError("Login failed");
+                    return false;
+                }
 
-                auth.login(accessToken, refreshToken, user);
+                auth.login(session.accessToken, session.refreshToken, session.user);
                 dispatch(setAuthStatus(true));
-                if (user) dispatch(setUser(user));
+                if (session.user) dispatch(setUser(session.user));
 
                 toastSuccess("Login successful!");
                 onClose();
@@ -82,7 +87,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
         e.preventDefault();
         e.stopPropagation();
         
-        if (!signUpData.name.trim() || !signUpData.email.trim() || !signUpData.password.trim()) {
+        if (!signUpData.firstName.trim() || !signUpData.lastName.trim() || !signUpData.email.trim() || !signUpData.password.trim()) {
             toastError("Please fill in all fields");
             return;
         }
@@ -96,15 +101,25 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
         
         try {
             const response = await authService.register({
-                fullName: signUpData.name,
-                email: signUpData.email,
+                firstName: signUpData.firstName.trim(),
+                lastName: signUpData.lastName.trim(),
+                email: signUpData.email.trim(),
                 password: signUpData.password,
             });
 
             if (response?.data?.success) {
-                toastSuccess("Registration successful! Please sign in.");
-                handleSwitchTab("signin");
-                setSignUpData({ name: "", email: "", password: "", confirmPassword: "" });
+                const session = parseAuthSession(response);
+                if (session) {
+                    auth.login(session.accessToken, session.refreshToken, session.user);
+                    dispatch(setAuthStatus(true));
+                    if (session.user) dispatch(setUser(session.user));
+                    toastSuccess("Registration successful!");
+                    onClose();
+                } else {
+                    toastSuccess("Registration successful! Please sign in.");
+                    handleSwitchTab("signin");
+                }
+                setSignUpData({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "" });
             } else {
                 toastError(response?.data?.message || "Registration failed");
             }
@@ -124,10 +139,15 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
             const response = await authService.googleLogin(credential);
 
             if (response?.data?.success) {
-                const { accessToken, refreshToken, user } = response.data.data;
-                auth.login(accessToken, refreshToken, user);
+                const session = parseAuthSession(response);
+                if (!session) {
+                    toastError("Google Login failed");
+                    return;
+                }
+
+                auth.login(session.accessToken, session.refreshToken, session.user);
                 dispatch(setAuthStatus(true));
-                if (user) dispatch(setUser(user));
+                if (session.user) dispatch(setUser(session.user));
 
                 toastSuccess("Google Login successful!");
                 onClose();
@@ -262,18 +282,34 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                         </form>
                     ) : (
                         <form onSubmit={handleSignUp} className="space-y-3">
-                            <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Full Name</label>
-                                <div className="relative group">
-                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
-                                    <input
-                                        type="text"
-                                        value={signUpData.name}
-                                        onChange={(e) => setSignUpData({ ...signUpData, name: e.target.value })}
-                                        placeholder="Enter your name"
-                                        className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
-                                        required
-                                    />
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">First Name</label>
+                                    <div className="relative group">
+                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
+                                        <input
+                                            type="text"
+                                            value={signUpData.firstName}
+                                            onChange={(e) => setSignUpData({ ...signUpData, firstName: e.target.value })}
+                                            placeholder="First name"
+                                            className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Last Name</label>
+                                    <div className="relative group">
+                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
+                                        <input
+                                            type="text"
+                                            value={signUpData.lastName}
+                                            onChange={(e) => setSignUpData({ ...signUpData, lastName: e.target.value })}
+                                            placeholder="Last name"
+                                            className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                            required
+                                        />
+                                    </div>
                                 </div>
                             </div>
                             <div className="space-y-1">

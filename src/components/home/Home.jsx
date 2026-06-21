@@ -4,8 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Mail } from "lucide-react";
-import { useProducts } from "@/services/api/product";
-import ProductCard from "@/components/ProductCard/ProductCard";
+import {
+  useNewArrivals,
+  usePopularProducts,
+  useTrendingProducts,
+} from "@/services/api/product";
+import ProductRowSlider from "./ProductRowSlider";
 
 const CATEGORIES = [
   { name: "Clothing", image: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=600&q=80" },
@@ -14,15 +18,31 @@ const CATEGORIES = [
   { name: "Accessories", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80" },
 ];
 
+const PRODUCT_QUERY_OPTS = {
+  retry: false,
+  refetchOnWindowFocus: false,
+};
+
 export default function Home() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
 
-  const { data: products = [], isLoading } = useProducts(1, 8, "", {
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
+  const { data: newProducts = [], isLoading: loadingNew } = useNewArrivals(
+    8,
+    1,
+    PRODUCT_QUERY_OPTS
+  );
+  const { data: popularProducts = [], isLoading: loadingPopular } = usePopularProducts(
+    8,
+    1,
+    PRODUCT_QUERY_OPTS
+  );
+  const { data: trendingProducts = [], isLoading: loadingTrending } = useTrendingProducts(
+    8,
+    1,
+    PRODUCT_QUERY_OPTS
+  );
 
   const handleNewsletter = (e) => {
     e.preventDefault();
@@ -89,21 +109,42 @@ export default function Home() {
 
       {/* Featured products */}
       <section className="container-page py-12">
-        <div className="mb-6 flex items-end justify-between gap-4">
+        <div className="mb-10 flex items-end justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight text-ink">Featured products</h2>
-            <p className="mt-1 text-sm text-muted">Hand-picked favorites from our catalog.</p>
+            <p className="mt-1 text-sm text-muted">
+              New arrivals, bestsellers, and trending picks — updated from live catalog data.
+            </p>
           </div>
-          <Link href="/products" className="text-sm font-medium text-brand hover:underline">
+          <Link href="/products" className="shrink-0 text-sm font-medium text-brand hover:underline">
             View all
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {isLoading
-            ? Array.from({ length: 8 }).map((_, i) => <ProductCard key={i} loading />)
-            : products.map((product) => (
-                <ProductCard key={product._id ?? product.id} product={product} />
-              ))}
+
+        <div className="space-y-14">
+          <ProductRowSlider
+            title="Newly added"
+            description="Latest products sorted by newest first."
+            href="/products"
+            products={newProducts}
+            isLoading={loadingNew}
+          />
+
+          <ProductRowSlider
+            title="Most popular"
+            description="Top picks ranked by orders, likes, reviews, and ratings."
+            href="/products"
+            products={popularProducts}
+            isLoading={loadingPopular}
+          />
+
+          <ProductRowSlider
+            title="Trending now"
+            description="Most viewed and engaged products right now."
+            href="/products"
+            products={trendingProducts}
+            isLoading={loadingTrending}
+          />
         </div>
       </section>
 

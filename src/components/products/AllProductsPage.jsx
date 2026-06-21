@@ -204,7 +204,7 @@ export default function AllProductsPage() {
             </div>
 
             {isLoading ? (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4 2xl:grid-cols-5">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <ProductCard key={i} loading />
                 ))}
@@ -219,7 +219,7 @@ export default function AllProductsPage() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4 2xl:grid-cols-5">
                 {filtered.map((product) => (
                   <ProductCard key={product._id ?? product.id} product={product} />
                 ))}

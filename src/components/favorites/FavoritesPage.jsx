@@ -1,149 +1,186 @@
-﻿import React from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { useRouter } from "next/navigation";
+﻿'use client';
+
 import Link from "next/link";
-import { Heart, ShoppingCart, Trash2, ChevronLeft, ArrowRight, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { ChevronRight, Heart, ShoppingBag, Trash2 } from "lucide-react";
 import { removeFromWishlist } from "@/store/slices/wishlistSlice";
 import { addToCart } from "@/store/slices/cartSlice";
-import ProfileBreadcrumb from "@/components/Breadcrumbs/ProfileBreadcrumb";
+import { productDetailRoute } from "@/lib/routes";
+import { showToast } from "@/lib/toast";
+
+const PLACEHOLDER =
+  "https://placehold.co/400x500/f1f5f9/94a3b8?text=No+Image";
+
+const getId = (item) => item._id ?? item.id ?? item.Product_ID;
+const getName = (item) => item.name ?? item.Product_name ?? "Product";
+const getPrice = (item) => Number(item.price ?? item.Product_price ?? 0);
+const getImage = (item) => item.image ?? item.Product_image ?? PLACEHOLDER;
+const getCategory = (item) => item.category ?? item.Product_type ?? item.Product_category ?? "";
+const getDiscount = (item) => Number(item.discount ?? item.Product_discount ?? 0);
 
 const FavoritesPage = () => {
   const router = useRouter();
   const dispatch = useDispatch();
-  const favoriteItems = useSelector((state) => state.wishlist.items);
+  const items = useSelector((state) => state?.wishlist?.items ?? []);
 
-  const handleRemove = (id) => {
-    dispatch(removeFromWishlist(id));
+  const handleRemove = (item) => {
+    dispatch(removeFromWishlist(getId(item)));
+    showToast.success("Removed from favorites");
   };
 
   const handleAddToCart = (item) => {
-    dispatch(addToCart(item));
+    const id = getId(item);
+    dispatch(
+      addToCart({
+        ...item,
+        _id: id,
+        Product_ID: id,
+        Product_name: getName(item),
+        Product_price: getPrice(item),
+        Product_image: getImage(item),
+      })
+    );
+    showToast.success("Added to cart");
+  };
+
+  const handleOpenProduct = (item) => {
+    router.push(productDetailRoute(item));
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-6 px-4">
-      <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-top-4 duration-700">
-        <div className="flex justify-between items-center mb-8">
-          <ProfileBreadcrumb
-            customTrail={[
-              { label: "Home", path: "/" },
-              { label: "Favorites", path: "/favorites" },
-            ]}
-          />
-        </div>
+    <div className="min-h-screen bg-canvas">
+      <div className="container-page py-6">
+        <nav className="mb-6 flex items-center gap-1 text-sm text-muted">
+          <Link href="/" className="hover:text-brand">
+            Home
+          </Link>
+          <ChevronRight className="h-4 w-4" />
+          <span className="text-ink">Favorites</span>
+        </nav>
 
-        <div className="mb-12 relative">
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter mb-1 uppercase">
-            My <span className="text-[#088395]">Favorites</span>
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 font-medium">
-            You have <span className="text-[#088395] font-black">{favoriteItems.length}</span> items saved in your wishlist.
-          </p>
-          <div className="absolute top-0 right-0 opacity-10 hidden md:block">
-             <Heart className="w-20 h-20 text-[#088395]" fill="currentColor" />
-          </div>
-        </div>
-
-        {favoriteItems.length === 0 ? (
-          <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 p-12 text-center max-w-2xl mx-auto shadow-premium">
-            <div className="w-20 h-20 bg-teal-50 dark:bg-teal-900/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <Heart className="w-10 h-10 text-[#088395]" />
-            </div>
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4 uppercase tracking-tight">Your Wishlist is Empty</h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
-              Looks like you haven&apos;t added any products to your favorites yet. 
-              Start exploring our catalog to find items you love!
+        <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+              Favorites
+            </h1>
+            <p className="mt-1 text-sm text-muted">
+              {items.length === 0
+                ? "Save items you love and shop them later."
+                : `${items.length} saved ${items.length === 1 ? "item" : "items"}`}
             </p>
-            <button
-              onClick={() => router.push("/products")}
-              className="px-8 py-3.5 bg-[#088395] hover:bg-[#066a78] text-white font-black uppercase tracking-[0.2em] rounded-xl transition-all shadow-xl shadow-teal-500/20 hover:scale-105 active:scale-95 flex items-center gap-3 mx-auto text-[10px]"
-            >
-              Browse Products
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+          </div>
+          {items.length > 0 && (
+            <Link href="/products" className="text-sm font-medium text-brand hover:underline">
+              Continue shopping
+            </Link>
+          )}
+        </div>
+
+        {items.length === 0 ? (
+          <div className="card mx-auto max-w-lg p-10 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-brand-soft">
+              <Heart className="h-6 w-6 text-brand" />
+            </div>
+            <h2 className="text-lg font-semibold text-ink">No favorites yet</h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted">
+              Browse products and tap the heart icon to save them here for easy access.
+            </p>
+            <Link href="/products" className="btn-primary mt-6 inline-flex h-11 px-6 text-sm">
+              Browse products
+            </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {favoriteItems.map((item) => (
-              <div 
-                key={item.Product_ID}
-                className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden transition-all duration-500 hover:border-[#088395]/30"
-              >
-                {/* Image Container */}
-                <div className="aspect-[4/5] relative overflow-hidden bg-gray-50 dark:bg-gray-800">
-                  <img 
-                    src={item.Product_image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800"} 
-                    alt={item.Product_name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute top-4 right-4">
-                    <button 
-                      onClick={() => handleRemove(item.Product_ID)}
-                      className="p-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-xl text-gray-400 hover:text-red-500 transition-all shadow-sm border border-gray-100 dark:border-gray-800"
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {items.map((item) => {
+              const id = getId(item);
+              const name = getName(item);
+              const price = getPrice(item);
+              const image = getImage(item);
+              const category = getCategory(item);
+              const discount = getDiscount(item);
+              const salePrice =
+                discount > 0 ? price - (price * discount) / 100 : price;
+
+              return (
+                <article
+                  key={id}
+                  className="card group overflow-hidden flex flex-col"
+                >
+                  <div className="relative aspect-square overflow-hidden bg-surface-2">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenProduct(item)}
+                      className="block h-full w-full"
+                      aria-label={`View ${name}`}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <img
+                        src={image}
+                        alt={name}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = PLACEHOLDER;
+                        }}
+                      />
+                    </button>
+
+                    {discount > 0 && (
+                      <span className="absolute left-3 top-3 rounded-md bg-brand px-2 py-0.5 text-xs font-medium text-white">
+                        -{discount}%
+                      </span>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemove(item)}
+                      className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-surface/90 text-muted shadow-soft transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
+                      aria-label="Remove from favorites"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                  {item.Product_discount && (
-                    <div className="absolute top-4 left-4 bg-[#088395] text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg">
-                      -{item.Product_discount}%
-                    </div>
-                  )}
-                </div>
 
-                {/* Content */}
-                <div className="p-4">
-                  <p className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-0.5">{item.Product_category || "Category"}</p>
-                  <h3 className="font-black text-gray-900 dark:text-white mb-2 truncate text-base tracking-tight group-hover:text-[#088395] transition-colors">
-                    {item.Product_name}
-                  </h3>
-                  
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex flex-col">
-                      <span className="text-lg font-black text-[#088395]">Γé╣{item.Product_price?.toLocaleString()}</span>
-                      {item.Product_originalPrice && (
-                        <span className="text-xs text-gray-400 line-through">Γé╣{item.Product_originalPrice.toLocaleString()}</span>
-                      )}
+                  <div className="flex flex-1 flex-col p-4">
+                    {category && (
+                      <span className="text-xs font-medium uppercase tracking-wide text-muted">
+                        {category}
+                      </span>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenProduct(item)}
+                      className="mt-1 line-clamp-2 text-left text-sm font-medium text-ink transition-colors hover:text-brand"
+                    >
+                      {name}
+                    </button>
+
+                    <div className="mt-auto flex items-center justify-between gap-3 pt-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base font-semibold text-ink">
+                          ₹{Math.round(salePrice).toLocaleString()}
+                        </span>
+                        {discount > 0 && (
+                          <span className="text-xs text-muted line-through">
+                            ₹{price.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleAddToCart(item)}
+                      className="btn-primary mt-4 h-10 w-full text-sm"
+                    >
+                      <ShoppingBag className="h-4 w-4" />
+                      Add to cart
+                    </button>
                   </div>
-
-                  <button 
-                    onClick={() => handleAddToCart(item)}
-                    className="w-full py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-black uppercase tracking-[0.2em] text-[9px] flex items-center justify-center gap-3 hover:bg-[#088395] dark:hover:bg-[#088395] dark:hover:text-white transition-all shadow-xl shadow-black/10 active:scale-95"
-                  >
-                    <ShoppingCart className="w-3.5 h-3.5" />
-                    Move to Cart
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Features Section */}
-        {favoriteItems.length > 0 && (
-          <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 p-10 bg-[#088395]/5 dark:bg-[#088395]/10 rounded-[3rem] border border-[#088395]/10">
-            <div className="text-center">
-               <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-                  <Sparkles className="w-6 h-6 text-[#088395]" />
-               </div>
-               <h4 className="font-black uppercase tracking-widest text-[10px] text-gray-900 dark:text-white mb-2">Secure Payment</h4>
-               <p className="text-[10px] text-gray-500 font-medium uppercase tracking-tight">100% Encrypted transactions</p>
-            </div>
-            <div className="text-center border-x border-[#088395]/10 px-8">
-               <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-                  <Heart className="w-6 h-6 text-[#088395]" />
-               </div>
-               <h4 className="font-black uppercase tracking-widest text-[10px] text-gray-900 dark:text-white mb-2">Curated Items</h4>
-               <p className="text-[10px] text-gray-500 font-medium uppercase tracking-tight">Only the best for you</p>
-            </div>
-            <div className="text-center">
-               <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-                  <ChevronLeft className="w-6 h-6 rotate-180 text-[#088395]" />
-               </div>
-               <h4 className="font-black uppercase tracking-widest text-[10px] text-gray-900 dark:text-white mb-2">Easy Returns</h4>
-               <p className="text-[10px] text-gray-500 font-medium uppercase tracking-tight">30-day hassle-free policy</p>
-            </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </div>

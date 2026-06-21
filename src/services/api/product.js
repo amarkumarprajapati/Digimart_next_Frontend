@@ -8,9 +8,9 @@ export const productKeys = {
   all: ["products"],
   list: (page = 1, limit = 10, sort = "") => ["products", "list", { page, limit, sort }],
   search: (q, limit = 10) => ["products", "search", { q, limit }],
-  popular: (limit = 10) => ["products", "popular", limit],
-  newArrivals: ["products", "new-arrivals"],
-  trending: ["products", "trending"],
+  popular: (page = 1, limit = 8) => ["products", "popular", { page, limit }],
+  newArrivals: (page = 1, limit = 8) => ["products", "new", { page, limit }],
+  trending: (page = 1, limit = 8) => ["products", "trending", { page, limit }],
   featured: ["products", "featured"],
   byId: (id) => ["products", "id", id],
   bySlug: (slug) => ["products", "slug", slug],
@@ -43,6 +43,9 @@ export const mapProduct = (p = {}) => ({
   slug: p.slug || "",
   type: p.Product_type || p.type,
   Product_type: p.Product_type || p.type,
+  Product_TotalStock: p.Product_TotalStock ?? p.stock ?? 0,
+  stock: p.Product_TotalStock ?? p.stock ?? 0,
+  inStock: (p.Product_TotalStock ?? p.stock ?? 1) > 0,
   category:
     typeof p.category === "object" && p.category?.name
       ? p.category.name
@@ -67,12 +70,11 @@ export const useProducts = (page = 1, limit = 10, sort = "", options = {}) =>
     ...options,
   });
 
-export const useSearchProducts = (q, limit = 10, options = {}) =>
+export const useSearchProducts = (q = "", limit = 10, options = {}) =>
   useQuery({
     queryKey: productKeys.search(q, limit),
     queryFn: async () =>
       extractProductList(unwrap(await productService.searchProducts(q, limit))),
-    enabled: !!q,
     ...options,
   });
 
@@ -92,31 +94,31 @@ export const useProductBySlug = (slug, options = {}) =>
     ...options,
   });
 
-export const usePopularProducts = (limit = 20, options = {}) =>
+export const usePopularProducts = (limit = 8, page = 1, options = {}) =>
   useQuery({
-    queryKey: productKeys.list(1, limit, ""),
+    queryKey: productKeys.popular(page, limit),
     queryFn: async () =>
-      extractProductList(unwrap(await productService.getAllProducts(1, limit))),
+      extractProductList(unwrap(await productService.getPopularProducts(page, limit))),
     staleTime: 5 * 60 * 1000,
     retry: false,
     ...options,
   });
 
-export const useNewArrivals = (options = {}) =>
+export const useNewArrivals = (limit = 8, page = 1, options = {}) =>
   useQuery({
-    queryKey: productKeys.list(1, 20, "new-arrivals"),
+    queryKey: productKeys.newArrivals(page, limit),
     queryFn: async () =>
-      extractProductList(unwrap(await productService.getAllProducts(1, 20))),
+      extractProductList(unwrap(await productService.getNewProducts(page, limit))),
     staleTime: 5 * 60 * 1000,
     retry: false,
     ...options,
   });
 
-export const useTrendingProducts = (options = {}) =>
+export const useTrendingProducts = (limit = 8, page = 1, options = {}) =>
   useQuery({
-    queryKey: productKeys.list(1, 20, "trending"),
+    queryKey: productKeys.trending(page, limit),
     queryFn: async () =>
-      extractProductList(unwrap(await productService.getAllProducts(1, 20))),
+      extractProductList(unwrap(await productService.getTrendingProducts(page, limit))),
     staleTime: 5 * 60 * 1000,
     retry: false,
     ...options,

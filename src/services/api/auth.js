@@ -1,8 +1,11 @@
 // Auth API hooks (TanStack Query)
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authService } from "./endpoints";
+import { normalizeUser, parseAuthSession } from "@/lib/auth";
 
 const unwrap = (res) => res?.data?.data ?? res?.data;
+
+export { parseAuthSession };
 
 export const authKeys = {
   me: ["auth", "me"],
@@ -11,7 +14,7 @@ export const authKeys = {
 export const useCurrentUser = (options = {}) =>
   useQuery({
     queryKey: authKeys.me,
-    queryFn: async () => unwrap(await authService.getCurrentUser()),
+    queryFn: async () => normalizeUser(unwrap(await authService.getCurrentUser())),
     staleTime: 5 * 60 * 1000,
     ...options,
   });

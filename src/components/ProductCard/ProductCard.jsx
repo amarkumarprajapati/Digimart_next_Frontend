@@ -1,45 +1,56 @@
 'use client';
 
-import { useState } from "react";
-import { Heart, Plus, Minus } from "lucide-react";
+import { Heart, Plus, Minus, ShoppingBag, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { setCurrentProduct } from "@/store/slices/currentProductSlice";
 import { addToCart, updateQuantity, removeItem } from "@/store/slices/cartSlice";
+import { toggleWishlist } from "@/store/slices/wishlistSlice";
 import { auth } from "@/lib/auth";
 import { productDetailRoute } from "@/lib/routes";
 import { useAuthModal } from "@/hooks/useAuthModal";
+import { showToast } from "@/lib/toast";
 
 const PLACEHOLDER =
-  "https://placehold.co/400x500/f1f5f9/94a3b8?text=No+Image";
+  "https://placehold.co/400x400/f1f5f9/94a3b8?text=No+Image";
 
-const ProductCard = ({ product, loading = false }) => {
+const formatPrice = (value) =>
+  `₹${Math.round(Number(value) || 0).toLocaleString("en-IN")}`;
+
+const ProductCard = ({ product, loading = false, variant = "grid" }) => {
   const router = useRouter();
   const dispatch = useDispatch();
   const { openSignIn } = useAuthModal();
-  const [isFavorite, setIsFavorite] = useState(false);
 
   const cartItems = useSelector((state) => state?.cart?.cartItems || []);
+  const wishlistItems = useSelector((state) => state?.wishlist?.items || []);
+
   const productId = product?._id ?? product?.id;
   const cartItem = cartItems.find(
     (item) => (item._id ?? item.id) === productId
+  );
+  const isFavorite = wishlistItems.some(
+    (item) => (item._id ?? item.id ?? item.Product_ID) === productId
   );
 
   const name = product?.name || product?.Product_name;
   const price = Number(product?.price ?? product?.Product_price ?? 0);
   const image = product?.Product_image || product?.image || PLACEHOLDER;
   const category = product?.category || product?.Product_type;
-  const discount = Number(product?.discount || product?.Product_discount || 0);
+  const discount = Number(product?.discount ?? product?.Product_discount ?? 0);
+  const rating = Number(product?.rating ?? 0);
+  const inStock = product?.inStock !== false && (product?.stock ?? product?.Product_TotalStock ?? 1) > 0;
+  const salePrice = discount > 0 ? price - (price * discount) / 100 : price;
 
   const handleProductClick = () => {
     if (loading || !productId) return;
     dispatch(setCurrentProduct(product));
-    router.push(productDetailRoute(productId));
+    router.push(productDetailRoute(product));
   };
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
-    if (loading) return;
+    if (loading || !inStock) return;
     if (!auth.isAuthenticated()) {
       openSignIn();
       return;
@@ -48,9 +59,24 @@ const ProductCard = ({ product, loading = false }) => {
       addToCart({
         ...product,
         _id: productId,
-        Product_ID: productId,
+        Product_ID: product?.Product_ID ?? productId,
         Product_price: price,
         Product_name: name,
+        Product_image: image,
+      })
+    );
+    showToast.success("Added to cart");
+  };
+
+  const handleToggleWishlist = (e) => {
+    e.stopPropagation();
+    dispatch(
+      toggleWishlist({
+        ...product,
+        _id: productId,
+        Product_ID: product?.Product_ID ?? productId,
+        Product_name: name,
+        Product_price: price,
         Product_image: image,
       })
     );
@@ -69,14 +95,21 @@ const ProductCard = ({ product, loading = false }) => {
     }
   };
 
+  const imageClass =
+    variant === "slider"
+      ? "relative h-36 overflow-hidden bg-surface-2 sm:h-40 md:h-44"
+      : "relative h-44 overflow-hidden bg-surface-2 sm:h-48 md:h-52";
+
   if (loading) {
     return (
-      <div className="card overflow-hidden animate-pulse">
-        <div className="aspect-[4/5] bg-surface-2" />
-        <div className="p-4 space-y-3">
-          <div className="h-3 w-1/3 bg-surface-2 rounded" />
-          <div className="h-4 w-2/3 bg-surface-2 rounded" />
-          <div className="h-9 w-full bg-surface-2 rounded-lg" />
+      <div className="flex h-full flex-col overflow-hidden rounded-lg border border-line bg-surface animate-pulse">
+        <div className={imageClass} />
+        <div className="flex flex-1 flex-col gap-2 p-2.5 sm:p-3">
+          <div className="h-2.5 w-1/4 rounded bg-surface-2" />
+          <div className="h-3.5 w-full rounded bg-surface-2" />
+          <div className="h-3.5 w-2/3 rounded bg-surface-2" />
+          <div className="mt-auto h-4 w-1/2 rounded bg-surface-2" />
+          <div className="h-9 w-full rounded-lg bg-surface-2" />
         </div>
       </div>
     );
@@ -85,73 +118,97 @@ const ProductCard = ({ product, loading = false }) => {
   return (
     <div
       onClick={handleProductClick}
-      className="group card overflow-hidden flex flex-col cursor-pointer transition-shadow duration-200 hover:shadow-premium"
+      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-lg border border-line bg-surface transition-all duration-200 hover:border-brand/25 hover:shadow-soft"
     >
-      <div className="relative aspect-[4/5] overflow-hidden bg-surface-2">
+      <div className={imageClass}>
         <img
           src={image}
           alt={name}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           onError={(e) => {
             e.currentTarget.onerror = null;
             e.currentTarget.src = PLACEHOLDER;
           }}
         />
         {discount > 0 && (
-          <span className="absolute left-3 top-3 rounded-md bg-brand px-2 py-0.5 text-xs font-medium text-white">
-            -{discount}%
+          <span className="absolute left-2 top-2 rounded bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-white">
+            {discount}% off
+          </span>
+        )}
+        {!inStock && (
+          <span className="absolute left-2 bottom-2 rounded bg-ink/75 px-1.5 py-0.5 text-[10px] font-medium text-white">
+            Out of stock
           </span>
         )}
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsFavorite((s) => !s);
-          }}
-          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-surface/90 text-body shadow-soft transition-colors hover:text-brand"
-          aria-label="Add to wishlist"
+          type="button"
+          onClick={handleToggleWishlist}
+          className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-surface/95 text-body shadow-soft backdrop-blur-sm transition-colors hover:text-brand"
+          aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"}
         >
-          <Heart className={`h-4 w-4 ${isFavorite ? "fill-brand text-brand" : ""}`} />
+          <Heart className={`h-3.5 w-3.5 ${isFavorite ? "fill-brand text-brand" : ""}`} />
         </button>
       </div>
 
-      <div className="flex flex-1 flex-col p-4">
+      <div className={`flex flex-1 flex-col ${variant === "slider" ? "p-3" : "p-3.5"}`}>
         {category && (
-          <span className="text-xs font-medium uppercase tracking-wide text-muted">
+          <span className="text-[10px] font-medium uppercase tracking-wide text-muted">
             {category}
           </span>
         )}
-        <h3 className="mt-1 line-clamp-2 text-sm font-medium text-ink">{name}</h3>
 
-        <div className="mt-auto pt-4 flex items-center justify-between gap-2">
-          <span className="text-base font-semibold text-ink">
-            ${price.toFixed(2)}
-          </span>
+        <h3 className="mt-0.5 line-clamp-2 text-sm font-medium leading-snug text-ink">
+          {name}
+        </h3>
 
-          <div onClick={(e) => e.stopPropagation()}>
-            {cartItem ? (
-              <div className="flex items-center gap-1 rounded-lg border border-line">
-                <button
-                  onClick={(e) => handleQuantityChange(e, "dec")}
-                  className="flex h-8 w-8 items-center justify-center text-body hover:text-brand"
-                >
-                  <Minus className="h-3.5 w-3.5" />
-                </button>
-                <span className="w-5 text-center text-sm font-medium text-ink">
-                  {cartItem.quantity}
-                </span>
-                <button
-                  onClick={(e) => handleQuantityChange(e, "inc")}
-                  className="flex h-8 w-8 items-center justify-center text-body hover:text-brand"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            ) : (
-              <button onClick={handleAddToCart} className="btn-primary h-9 px-3 text-sm">
-                Add to cart
-              </button>
-            )}
+        {rating > 0 && (
+          <div className="mt-1.5 flex items-center gap-1">
+            <span className="inline-flex items-center gap-0.5 rounded bg-green-600 px-1 py-0.5 text-[10px] font-semibold text-white">
+              {rating.toFixed(1)}
+              <Star className="h-2.5 w-2.5 fill-white text-white" />
+            </span>
           </div>
+        )}
+
+        <div className="mt-1.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+          <span className="text-sm font-semibold text-ink sm:text-base">{formatPrice(salePrice)}</span>
+          {discount > 0 && (
+            <span className="text-xs text-muted line-through">{formatPrice(price)}</span>
+          )}
+        </div>
+
+        <div className={`mt-auto ${variant === "slider" ? "pt-2" : "pt-3"}`} onClick={(e) => e.stopPropagation()}>
+          {cartItem ? (
+            <div className="flex h-9 items-center justify-between rounded-lg border border-line bg-surface-2 px-0.5">
+              <button
+                type="button"
+                onClick={(e) => handleQuantityChange(e, "dec")}
+                className="flex h-7 w-7 items-center justify-center rounded-md text-body hover:text-brand"
+                aria-label="Decrease quantity"
+              >
+                <Minus className="h-3.5 w-3.5" />
+              </button>
+              <span className="text-xs font-semibold text-ink">{cartItem.quantity}</span>
+              <button
+                type="button"
+                onClick={(e) => handleQuantityChange(e, "inc")}
+                className="flex h-7 w-7 items-center justify-center rounded-md text-body hover:text-brand"
+                aria-label="Increase quantity"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={!inStock}
+              className="btn-primary h-9 w-full text-xs disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <ShoppingBag className="h-3.5 w-3.5" />
+              {inStock ? "Add to cart" : "Out of stock"}
+            </button>
+          )}
         </div>
       </div>
     </div>

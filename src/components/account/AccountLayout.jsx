@@ -5,7 +5,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { User, Package, MapPin, Ticket, Heart, LogOut, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { setAuthStatus, setUser } from "@/store/slices/authSlice";
-import { auth } from "@/lib/auth";
+import { auth, getDisplayName } from "@/lib/auth";
+import { authService } from "@/services/api/endpoints";
 
 const TABS = [
   { label: "My Profile", icon: User, path: "/my-profile" },
@@ -21,7 +22,12 @@ const AccountLayout = ({ title, description, actions, toolbar, children }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch {
+      /* clear local session even if API fails */
+    }
     auth.logout();
     dispatch(setAuthStatus(false));
     dispatch(setUser(null));
@@ -44,11 +50,11 @@ const AccountLayout = ({ title, description, actions, toolbar, children }) => {
             <div className="card flex flex-col overflow-hidden lg:h-full">
               <div className="flex shrink-0 items-center gap-3 border-b border-line p-5">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-soft text-lg font-semibold text-brand">
-                  {(user?.fullName || user?.name || user?.email || "U").charAt(0).toUpperCase()}
+                  {(getDisplayName(user) || user?.email || "U").charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-ink">
-                    {user?.fullName || user?.name || "Welcome"}
+                    {getDisplayName(user) || "Welcome"}
                   </p>
                   <p className="truncate text-xs text-muted">{user?.email}</p>
                 </div>

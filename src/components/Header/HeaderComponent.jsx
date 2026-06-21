@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Tooltip, ConfigProvider, Dropdown, theme as antTheme } from "antd";
 import {
   Search,
   ShoppingBag,
@@ -14,23 +15,29 @@ import {
   X,
   Sun,
   Moon,
+  ChevronDown,
 } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useSelector, useDispatch } from "react-redux";
-import { auth } from "@/lib/auth";
+import { auth, getDisplayName } from "@/lib/auth";
+import { authService, productService } from "@/services/api/endpoints";
 import { setAuthStatus, setUser } from "@/store/slices/authSlice";
 import { useAuthModal } from "@/hooks/useAuthModal";
 import { useTheme } from "@/contexts/ThemeContext";
 import CartSidebar from "../Cart/Cart";
-import SearchMegaMenu from "./SearchMegaMenu";
+import HeaderSearchBox from "./HeaderSearchBox";
+import { productDetailRoute, productsRoute } from "@/lib/routes";
 
-const NAV_LINKS = [
-  { label: "Shop", href: "/products" },
-  { label: "Categories", href: "/products" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
+const SHOP_CATEGORIES = [
+  { name: "Clothing", slug: "clothing" },
+  { name: "Home", slug: "home" },
+  { name: "Beauty", slug: "beauty" },
+  { name: "Accessories", slug: "accessories" },
 ];
+
+const navLinkClass = (active) =>
+  `text-sm font-medium transition-colors ${active ? "text-brand" : "text-body hover:text-brand"}`;
 
 const PROFILE_LINKS = [
   { label: "My Profile", icon: User, path: "/my-profile" },
@@ -39,10 +46,36 @@ const PROFILE_LINKS = [
   { label: "Coupons", icon: Ticket, path: "/coupons" },
 ];
 
+const parseSearchResults = (response) => {
+  const data = response?.data?.data ?? response?.data;
+  const list = Array.isArray(data?.products)
+    ? data.products
+    : Array.isArray(data)
+      ? data
+      : data?.items ?? data?.data ?? [];
+  return Array.isArray(list) ? list : [];
+};
+
+const ACTION_TOOLTIP = {
+  mouseEnterDelay: 0,
+  mouseLeaveDelay: 0,
+  placement: "bottom",
+};
+
+const ActionTooltip = ({ title, children }) => (
+  <Tooltip title={title} {...ACTION_TOOLTIP}>
+    {children}
+  </Tooltip>
+);
+
 const HeaderComponent = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activeCategory = searchParams.get("category")?.toLowerCase() || "";
+  const isShopActive = pathname === "/products" && !activeCategory;
+  const isCategoriesActive = pathname === "/products" && !!activeCategory;
   const { openSignIn } = useAuthModal();
   const { theme, toggleTheme } = useTheme();
 
@@ -53,12 +86,26 @@ const HeaderComponent = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const profileRef = useRef(null);
+  const debounceRef = useRef(null);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const wishlistCount = wishlistItems.length;
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     const authenticated = auth.isAuthenticated();
@@ -82,7 +129,75 @@ const HeaderComponent = () => {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const fetchSuggestions = useCallback(async (q = "") => {
+    setSearchLoading(true);
+    try {
+      const response = await productService.searchProducts(q, 8);
+      setSuggestions(parseSearchResults(response));
+    } catch {
+      setSuggestions([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  }, []);
+
+  const handleSearchOpenChange = (open) => {
+    setSearchOpen(open);
+    if (open) fetchSuggestions(searchQuery);
+  };
+
+  const handleQueryChange = (value) => {
+    setSearchQuery(value);
+    setSearchOpen(true);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    setSearchLoading(true);
+    debounceRef.current = setTimeout(() => fetchSuggestions(value), 300);
+  };
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setIsMobileSearchOpen(false);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    router.push(productsRoute({ search: searchQuery.trim() }));
+    closeSearch();
+  };
+
+  const handleProductClick = (product) => {
+    router.push(productDetailRoute(product));
+    setSearchQuery("");
+    setSuggestions([]);
+    closeSearch();
+  };
+
+  const handleViewAllResults = () => {
+    if (!searchQuery.trim()) return;
+    router.push(productsRoute({ search: searchQuery.trim() }));
+    closeSearch();
+  };
+
+  const toggleMobileSearch = () => {
+    setIsMobileSearchOpen((open) => {
+      const next = !open;
+      if (next) {
+        setSearchOpen(true);
+        fetchSuggestions(searchQuery);
+      } else {
+        setSearchOpen(false);
+      }
+      return next;
+    });
+  };
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch {
+      /* clear local session even if API fails */
+    }
     auth.logout();
     setIsLoggedIn(false);
     dispatch(setAuthStatus(false));
@@ -93,102 +208,169 @@ const HeaderComponent = () => {
 
   const isActive = (href) => pathname === href;
 
+  const categoryMenuItems = [
+    {
+      key: "all",
+      label: (
+        <Link href="/products" className="block py-0.5">
+          All products
+        </Link>
+      ),
+    },
+    { type: "divider" },
+    ...SHOP_CATEGORIES.map((cat) => ({
+      key: cat.slug,
+      label: (
+        <Link href={productsRoute({ category: cat.slug })} className="block py-0.5">
+          {cat.name}
+        </Link>
+      ),
+    })),
+  ];
+
+  const searchVisible = isDesktop || isMobileSearchOpen;
+
+  const searchBoxProps = {
+    query: searchQuery,
+    onQueryChange: handleQueryChange,
+    suggestions,
+    loading: searchLoading,
+    open: searchOpen && searchVisible,
+    onOpenChange: handleSearchOpenChange,
+    onSubmit: handleSearchSubmit,
+    onProductClick: handleProductClick,
+    onViewAll: handleViewAllResults,
+  };
+
+  const searchField = searchVisible ? (
+    <HeaderSearchBox
+      {...searchBoxProps}
+      className={isDesktop ? "w-full" : "w-full"}
+      autoFocus={!isDesktop && isMobileSearchOpen}
+    />
+  ) : null;
+
   return (
     <>
       <header className="sticky top-0 z-[100] border-b border-line bg-surface/90 backdrop-blur-md">
         <div className="container-page flex h-16 items-center justify-between gap-6">
-          {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <span className="text-xl font-semibold tracking-tight text-ink">
               Digi<span className="text-brand">Mart</span>
             </span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-7">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className={`text-sm font-medium transition-colors ${
-                  isActive(link.href)
-                    ? "text-brand"
-                    : "text-body hover:text-brand"
-                }`}
+          <nav className="hidden md:flex items-center gap-6">
+            <Link href="/products" className={navLinkClass(isShopActive)}>
+              Shop
+            </Link>
+
+            <Dropdown
+              menu={{ items: categoryMenuItems }}
+              trigger={["hover"]}
+              mouseEnterDelay={0}
+              mouseLeaveDelay={0.1}
+            >
+              <button
+                type="button"
+                className={`flex items-center gap-1 ${navLinkClass(isCategoriesActive)}`}
               >
-                {link.label}
-              </Link>
-            ))}
+                Categories
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+            </Dropdown>
+
+            <Link href="/about" className={navLinkClass(isActive("/about"))}>
+              About
+            </Link>
+            <Link href="/contact" className={navLinkClass(isActive("/contact"))}>
+              Contact
+            </Link>
           </nav>
 
-          {/* Search (desktop) */}
-          <button
-            onClick={() => setIsSearchOpen(true)}
-            className="hidden lg:flex flex-1 max-w-sm items-center gap-3 rounded-lg border border-line bg-surface-2 px-4 h-10 text-muted hover:border-brand/40 transition-colors"
+          {isDesktop && (
+            <div className="flex-1 max-w-sm">{searchField}</div>
+          )}
+
+          <ConfigProvider
+            theme={{
+              algorithm: theme === "dark" ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm,
+              token: { colorPrimary: "#0d9488", borderRadius: 8 },
+            }}
           >
-            <Search className="w-4 h-4" />
-            <span className="text-sm">Search products...</span>
-          </button>
-
-          {/* Actions */}
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => setIsSearchOpen(true)}
-              className="lg:hidden p-2.5 rounded-lg text-body hover:bg-surface-2 transition-colors"
-              aria-label="Search"
-            >
-              <Search className="w-5 h-5" />
-            </button>
+            <ActionTooltip title="Search">
+              <button
+                type="button"
+                onClick={toggleMobileSearch}
+                className="lg:hidden p-2.5 rounded-lg text-body hover:bg-surface-2 transition-colors"
+                aria-label="Search"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+            </ActionTooltip>
 
-            <button
-              onClick={toggleTheme}
-              className="p-2.5 rounded-lg text-body hover:bg-surface-2 transition-colors"
-              aria-label="Toggle theme"
-            >
-              {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+            <ActionTooltip title={theme === "dark" ? "Light mode" : "Dark mode"}>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="p-2.5 rounded-lg text-body hover:bg-surface-2 transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+            </ActionTooltip>
 
-            <button
-              onClick={() => router.push("/favorites")}
-              className="relative p-2.5 rounded-lg text-body hover:bg-surface-2 transition-colors"
-              aria-label="Wishlist"
-            >
-              <Heart className="w-5 h-5" />
-              {wishlistCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-brand text-white text-[10px] font-semibold flex items-center justify-center">
-                  {wishlistCount}
-                </span>
-              )}
-            </button>
+            <ActionTooltip title="Favorites">
+              <button
+                type="button"
+                onClick={() => router.push("/favorites")}
+                className="relative p-2.5 rounded-lg text-body hover:bg-surface-2 transition-colors"
+                aria-label="Favorites"
+              >
+                <Heart className="w-5 h-5" />
+                {wishlistCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-brand text-white text-[10px] font-semibold flex items-center justify-center">
+                    {wishlistCount}
+                  </span>
+                )}
+              </button>
+            </ActionTooltip>
 
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative p-2.5 rounded-lg text-body hover:bg-surface-2 transition-colors"
-              aria-label="Cart"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              {cartCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-brand text-white text-[10px] font-semibold flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-            </button>
+            <ActionTooltip title="Cart">
+              <button
+                type="button"
+                onClick={() => setIsCartOpen(true)}
+                className="relative p-2.5 rounded-lg text-body hover:bg-surface-2 transition-colors"
+                aria-label="Cart"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                {cartCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-brand text-white text-[10px] font-semibold flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+            </ActionTooltip>
 
             {isLoggedIn ? (
               <div className="relative ml-1" ref={profileRef}>
-                <button
-                  onClick={() => setShowProfile((s) => !s)}
-                  className="flex items-center justify-center w-9 h-9 rounded-full bg-brand-soft text-brand font-semibold text-sm"
-                  aria-label="Account"
-                >
-                  {(user?.fullName || user?.name || user?.email || "U").charAt(0).toUpperCase()}
-                </button>
+                <ActionTooltip title="Account">
+                  <button
+                    type="button"
+                    onClick={() => setShowProfile((s) => !s)}
+                    className="flex items-center justify-center w-9 h-9 rounded-full bg-brand-soft text-brand font-semibold text-sm"
+                    aria-label="Account"
+                  >
+                    {(getDisplayName(user) || user?.email || "U").charAt(0).toUpperCase()}
+                  </button>
+                </ActionTooltip>
 
                 {showProfile && (
                   <div className="absolute right-0 top-full mt-2 w-60 rounded-xl border border-line bg-surface shadow-premium overflow-hidden">
                     <div className="px-4 py-3 border-b border-line">
                       <p className="text-sm font-semibold text-ink truncate">
-                        {user?.fullName || user?.name || "Welcome"}
+                        {getDisplayName(user) || "Welcome"}
                       </p>
                       <p className="text-xs text-muted truncate">{user?.email}</p>
                     </div>
@@ -227,18 +409,25 @@ const HeaderComponent = () => {
               </button>
             )}
 
-            <button
-              onClick={() => setIsDrawerOpen(true)}
-              className="md:hidden p-2.5 rounded-lg text-body hover:bg-surface-2 transition-colors"
-              aria-label="Menu"
-            >
-              <MenuIcon className="w-5 h-5" />
-            </button>
+            <ActionTooltip title="Menu">
+              <button
+                type="button"
+                onClick={() => setIsDrawerOpen(true)}
+                className="md:hidden p-2.5 rounded-lg text-body hover:bg-surface-2 transition-colors"
+                aria-label="Menu"
+              >
+                <MenuIcon className="w-5 h-5" />
+              </button>
+            </ActionTooltip>
           </div>
+          </ConfigProvider>
         </div>
+
+        {!isDesktop && isMobileSearchOpen && (
+          <div className="container-page pb-3">{searchField}</div>
+        )}
       </header>
 
-      {/* Mobile drawer */}
       {isDrawerOpen && (
         <div className="fixed inset-0 z-[200] md:hidden">
           <div
@@ -256,16 +445,46 @@ const HeaderComponent = () => {
               </button>
             </div>
             <nav className="flex flex-col gap-1">
-              {NAV_LINKS.map((link) => (
+              <Link
+                href="/products"
+                onClick={() => setIsDrawerOpen(false)}
+                className={`px-3 py-2.5 rounded-lg hover:bg-surface-2 font-medium ${isShopActive ? "text-brand bg-brand-soft/40" : "text-body"}`}
+              >
+                Shop all
+              </Link>
+
+              <p className="px-3 pt-4 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">
+                Categories
+              </p>
+              {SHOP_CATEGORIES.map((cat) => (
                 <Link
-                  key={link.label}
-                  href={link.href}
+                  key={cat.slug}
+                  href={productsRoute({ category: cat.slug })}
                   onClick={() => setIsDrawerOpen(false)}
-                  className="px-3 py-2.5 rounded-lg text-body hover:bg-surface-2 font-medium"
+                  className={`px-3 py-2.5 rounded-lg hover:bg-surface-2 font-medium ${
+                    activeCategory === cat.slug ? "text-brand bg-brand-soft/40" : "text-body"
+                  }`}
                 >
-                  {link.label}
+                  {cat.name}
                 </Link>
               ))}
+
+              <div className="my-2 h-px bg-line" />
+
+              <Link
+                href="/about"
+                onClick={() => setIsDrawerOpen(false)}
+                className={`px-3 py-2.5 rounded-lg hover:bg-surface-2 font-medium ${isActive("/about") ? "text-brand" : "text-body"}`}
+              >
+                About
+              </Link>
+              <Link
+                href="/contact"
+                onClick={() => setIsDrawerOpen(false)}
+                className={`px-3 py-2.5 rounded-lg hover:bg-surface-2 font-medium ${isActive("/contact") ? "text-brand" : "text-body"}`}
+              >
+                Contact
+              </Link>
             </nav>
             {!isLoggedIn && (
               <button
@@ -283,7 +502,6 @@ const HeaderComponent = () => {
       )}
 
       <CartSidebar open={isCartOpen} setOpen={setIsCartOpen} />
-      <SearchMegaMenu isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   );
 };

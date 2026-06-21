@@ -2,15 +2,15 @@ import api from "./client";
 
 // ---------- AUTH ----------
 export const authService = {
-  register: (data) => api.post("/v1/auth/register", data),
+  register: (data) => api.post("/auth/register", data),
   login: (data) => api.post("/auth/login", data),
-  logout: () => api.post("/v1/auth/logout"),
-  getCurrentUser: () => api.get("/v1/auth/me"),
-  refreshToken: (refreshToken) => api.post("/v1/auth/refresh-token", { refreshToken }),
-  googleLogin: (idToken) => api.post("/v1/auth/google", { idToken }),
-  forgotPassword: (email) => api.post("/v1/auth/forgot-password", { email }),
+  logout: () => api.post("/auth/logout"),
+  getCurrentUser: () => api.get("/auth/me"),
+  refreshToken: (refreshToken) => api.post("/auth/refresh", { refreshToken }),
+  googleLogin: (idToken) => api.post("/auth/google", { idToken }),
+  forgotPassword: (email) => api.post("/auth/forgot-password", { email }),
   resetPassword: (token, newPassword) =>
-    api.post("/v1/auth/reset-password", { token, newPassword }),
+    api.post("/auth/reset-password", { token, newPassword }),
 };
 
 // ---------- PROFILE & ADDRESSES ----------
@@ -29,20 +29,36 @@ export const profileService = {
 };
 
 // ---------- PRODUCTS ----------
+const productListQuery = ({ page, limit, year } = {}) => {
+  const params = new URLSearchParams();
+  if (limit) params.set("limit", String(limit));
+  if (page) params.set("page", String(page));
+  if (year) params.set("year", String(year));
+  const query = params.toString();
+  return query ? `?${query}` : "";
+};
+
 export const productService = {
   getAllProducts: (page = 1, limit = 20, sort = "") =>
     api.get(`/products?page=${page}&limit=${limit}${sort ? `&sort=${encodeURIComponent(sort)}` : ""}`),
-  searchProducts: (q, limit = 10) =>
-    api.get(`/user/products/search?q=${encodeURIComponent(q)}&limit=${limit}`),
+  searchProducts: (q = "", limit = 10) => {
+    const params = new URLSearchParams();
+    if (q?.trim()) params.set("q", q.trim());
+    if (limit) params.set("limit", String(limit));
+    const query = params.toString();
+    return api.get(`/products/search${query ? `?${query}` : ""}`);
+  },
+  getNewProducts: (page = 1, limit = 8, year) =>
+    api.get(`/products/new${productListQuery({ page, limit, year })}`),
+  getPopularProducts: (page = 1, limit = 8, year) =>
+    api.get(`/products/popular${productListQuery({ page, limit, year })}`),
+  getTrendingProducts: (page = 1, limit = 8, year) =>
+    api.get(`/products/trending${productListQuery({ page, limit, year })}`),
   getProductById: (id) => api.get(`/products/${id}`),
   getProductBySlug: (slug) => api.get(`/user/products/slug/${slug}`),
   getProductDetail: (id) => api.get(`/products/${id}`),
-  getPopularProducts: (page = 1, limit = 10) =>
-    api.get(`/user/products/popular?page=${page}&limit=${limit}`),
-  getNewArrivals: (page = 1, limit = 10) =>
-    api.get(`/user/products/new-arrivals?page=${page}&limit=${limit}`),
-  getTrendingProducts: (page = 1, limit = 10) =>
-    api.get(`/user/products/trending?page=${page}&limit=${limit}`),
+  getNewArrivals: (page = 1, limit = 8, year) =>
+    api.get(`/products/new${productListQuery({ page, limit, year })}`),
   getFeaturedProducts: () => api.get("/user/products/featured"),
   getProductsByCategory: (category, page = 1, limit = 10) =>
     api.get(`/user/products/category/${category}?page=${page}&limit=${limit}`),
