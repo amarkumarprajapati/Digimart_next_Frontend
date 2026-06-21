@@ -8,7 +8,7 @@ import Footer from "@/components/footer/FooterComponent";
 import AuthModal from "@/components/Modal/AuthModal";
 import { useAuthModal } from "@/hooks/useAuthModal";
 
-const publicExact = ["/", "/products", "/cart", "/about", "/contact", "/faq", "/terms", "/favorites", "/error"];
+const publicExact = ["/", "/products", "/cart", "/about", "/contact", "/faq", "/terms", "/favorites", "/error", "/reset-password"];
 
 const isPublicPath = (pathname) => {
   if (publicExact.includes(pathname)) return true;
@@ -22,7 +22,7 @@ const MainLayout = ({ children }) => {
   const pathname = usePathname();
 
   useEffect(() => {
-    const isAuthPage = pathname === "/signin" || pathname === "/signup";
+    const isAuthPage = pathname === "/signin" || pathname === "/signup" || pathname === "/reset-password";
     if (!isPublicPath(pathname) && !isAuthenticated && !isAuthPage) {
       close();
     }

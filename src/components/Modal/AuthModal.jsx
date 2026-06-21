@@ -24,17 +24,30 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
         password: "",
         confirmPassword: "",
     });
+    const [forgotEmail, setForgotEmail] = useState("");
+    const [forgotSent, setForgotSent] = useState(false);
+    const [forgotMessage, setForgotMessage] = useState("");
 
     useEffect(() => {
         if (isOpen) {
             setActiveTab(defaultTab);
             setSignInData({ email: "", password: "" });
             setSignUpData({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "" });
+            setForgotEmail("");
+            setForgotSent(false);
+            setForgotMessage("");
         }
     }, [isOpen, defaultTab]);
 
     const handleSwitchTab = (tab) => {
         setIsAnimating(true);
+        if (tab !== "forgot") {
+            setForgotSent(false);
+            setForgotMessage("");
+        }
+        if (tab === "forgot" && signInData.email && !forgotEmail) {
+            setForgotEmail(signInData.email);
+        }
         setTimeout(() => {
             setActiveTab(tab);
             setIsAnimating(false);
@@ -132,6 +145,38 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
         return false;
     };
 
+    const handleForgotPassword = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!forgotEmail.trim()) {
+            toastError("Please enter your email address");
+            return false;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await authService.forgotPassword(forgotEmail.trim());
+            if (response?.data?.success) {
+                const payload = response?.data?.data ?? response?.data;
+                const message =
+                    payload?.message ||
+                    "If an account exists for this email, a password reset link has been sent.";
+                setForgotMessage(message);
+                setForgotSent(true);
+                toastSuccess(message);
+            } else {
+                toastError(response?.data?.message || "Failed to send reset link");
+            }
+        } catch (error) {
+            toastError(error?.response?.data?.message || "Failed to send reset link");
+        } finally {
+            setIsLoading(false);
+        }
+
+        return false;
+    };
+
     const handleGoogleSuccess = async (credentialResponse) => {
         setIsLoading(true);
         try {
@@ -193,15 +238,23 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                     {/* Header */}
                     <div className="text-center mb-6">
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1.5">
-                            {activeTab === "signin" ? "Welcome Back!" : "Create Account"}
+                            {activeTab === "signin"
+                                ? "Welcome Back!"
+                                : activeTab === "signup"
+                                  ? "Create Account"
+                                  : "Reset Password"}
                         </h2>
                         <p className="text-gray-500 dark:text-gray-400 text-xs text-center mx-auto max-w-[80%] leading-relaxed">
                             {activeTab === "signin"
                                 ? "Login to access your DigiMart account"
-                                : "Join DigiMart to start shopping"}
+                                : activeTab === "signup"
+                                  ? "Join DigiMart to start shopping"
+                                  : "Enter your email and we'll send you a reset link"}
                         </p>
                     </div>
 
+                    {activeTab !== "forgot" && (
+                    <>
                     {/* Social Login Buttons */}
                     <div className="flex flex-col gap-2.5 mb-6">
                         <div className="flex justify-center w-full">
@@ -222,9 +275,56 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Or</span>
                         <div className="h-px bg-gray-200 dark:bg-gray-800 flex-1" />
                     </div>
+                    </>
+                    )}
 
                     {/* Forms */}
-                    {activeTab === "signin" ? (
+                    {activeTab === "forgot" ? (
+                        forgotSent ? (
+                            <div className="space-y-4 text-center">
+                                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                                    {forgotMessage}
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={() => handleSwitchTab("signin")}
+                                    className="w-full h-10 bg-brand hover:bg-brand-hover text-white font-semibold rounded-lg transition-all active:scale-[0.98] text-sm"
+                                >
+                                    Back to Login
+                                </button>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleForgotPassword} className="space-y-4">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Email</label>
+                                    <div className="relative group">
+                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
+                                        <input
+                                            type="email"
+                                            value={forgotEmail}
+                                            onChange={(e) => setForgotEmail(e.target.value)}
+                                            placeholder="Enter your email"
+                                            className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={isLoading}
+                                    className="w-full h-10 bg-brand hover:bg-brand-hover text-white font-semibold rounded-lg transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                                >
+                                    {isLoading ? (
+                                        <span className="flex items-center gap-2">
+                                            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            Sending...
+                                        </span>
+                                    ) : "Send Reset Link"}
+                                </button>
+                            </form>
+                        )
+                    ) : activeTab === "signin" ? (
                         <form onSubmit={handleSignIn} className="space-y-4">
                             <div className="space-y-1">
                                 <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Email</label>
@@ -263,7 +363,11 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                                 </div>
                             </div>
 
-                            <button type="button" className="block ml-auto text-xs font-semibold text-brand hover:text-brand-hover translate-y-[-4px]">
+                            <button
+                                type="button"
+                                onClick={() => handleSwitchTab("forgot")}
+                                className="block ml-auto text-xs font-semibold text-brand hover:text-brand-hover translate-y-[-4px]"
+                            >
                                 Forgot Password?
                             </button>
 
@@ -379,13 +483,37 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                     {/* Footer Toggle */}
                     <div className="mt-5 text-center border-t border-gray-100 dark:border-gray-800 pt-4">
                         <p className="text-xs text-gray-600 dark:text-gray-400">
-                            {activeTab === "signin" ? "Didn't have an account?" : "Already have an account?"}
-                            <button
-                                onClick={() => handleSwitchTab(activeTab === "signin" ? "signup" : "signin")}
-                                className="ml-1.5 font-semibold text-brand hover:text-brand-hover transition-all"
-                            >
-                                {activeTab === "signin" ? "Sign Up" : "Login"}
-                            </button>
+                            {activeTab === "forgot" ? (
+                                <>
+                                    Remember your password?
+                                    <button
+                                        onClick={() => handleSwitchTab("signin")}
+                                        className="ml-1.5 font-semibold text-brand hover:text-brand-hover transition-all"
+                                    >
+                                        Login
+                                    </button>
+                                </>
+                            ) : activeTab === "signin" ? (
+                                <>
+                                    Didn&apos;t have an account?
+                                    <button
+                                        onClick={() => handleSwitchTab("signup")}
+                                        className="ml-1.5 font-semibold text-brand hover:text-brand-hover transition-all"
+                                    >
+                                        Sign Up
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    Already have an account?
+                                    <button
+                                        onClick={() => handleSwitchTab("signin")}
+                                        className="ml-1.5 font-semibold text-brand hover:text-brand-hover transition-all"
+                                    >
+                                        Login
+                                    </button>
+                                </>
+                            )}
                         </p>
                     </div>
                 </div>
