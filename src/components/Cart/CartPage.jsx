@@ -47,13 +47,20 @@ export default function CartPage() {
   const total = subtotal + shipping - discountAmount;
 
   return (
-    <div className="min-h-screen bg-canvas py-8">
+    <div className="bg-canvas py-5">
       <div className="container-page">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-semibold tracking-tight text-ink">Your Cart</h1>
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <h1 className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">
+            Your Cart
+            {cartItems.length > 0 && (
+              <span className="ml-2 text-base font-normal text-muted">
+                ({cartItems.length})
+              </span>
+            )}
+          </h1>
           <button
             onClick={() => router.push("/products")}
-            className="flex items-center gap-2 text-sm text-muted hover:text-brand"
+            className="flex shrink-0 items-center gap-1.5 text-sm text-muted hover:text-brand"
           >
             <ArrowLeft className="h-4 w-4" />
             Continue Shopping
@@ -61,98 +68,96 @@ export default function CartPage() {
         </div>
 
         {cartItems.length === 0 ? (
-          <div className="card mx-auto max-w-xl p-12 text-center">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-surface-2">
-              <ShoppingBag className="h-6 w-6 text-muted" />
+          <div className="card mx-auto max-w-md p-8 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-surface-2">
+              <ShoppingBag className="h-5 w-5 text-muted" />
             </div>
-            <h2 className="text-lg font-semibold text-ink">Your cart is empty</h2>
-            <p className="mt-1 text-sm text-muted">
-              Add some products to start your order.
-            </p>
+            <h2 className="text-base font-semibold text-ink">Your cart is empty</h2>
+            <p className="mt-1 text-sm text-muted">Add some products to start your order.</p>
             <button
               onClick={() => router.push("/products")}
-              className="btn-primary mt-6 h-11 px-6 text-sm"
+              className="btn-primary mt-5 h-10 px-5 text-sm"
             >
               Explore products
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-            {/* Items */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:items-start lg:gap-5">
             <div className="lg:col-span-8">
-              <div className="card divide-y divide-line overflow-hidden">
-                {cartItems.map((item) => (
-                  <div key={item.Product_ID} className="flex gap-4 p-5">
-                    <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg border border-line bg-surface-2">
-                      <img
-                        src={item.Product_image || item.image || PLACEHOLDER}
-                        alt={item.Product_name || item.name}
-                        className="h-full w-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = PLACEHOLDER;
-                        }}
-                      />
-                    </div>
-
-                    <div className="flex flex-1 flex-col">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          {(item.Product_type || item.category) && (
-                            <p className="text-xs uppercase tracking-wide text-muted">
-                              {item.Product_type || item.category}
-                            </p>
-                          )}
-                          <h3 className="text-sm font-medium text-ink line-clamp-2">
-                            {item.Product_name || item.name}
-                          </h3>
-                        </div>
-                        <button
-                          onClick={() => handleRemoveItem(item.Product_ID)}
-                          className="rounded-lg p-1.5 text-muted hover:bg-surface-2 hover:text-red-600"
-                          aria-label="Remove"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+              <div className="card overflow-hidden">
+                <div className="max-h-[min(480px,calc(100dvh-14rem))] overflow-y-auto overscroll-y-contain divide-y divide-line">
+                  {cartItems.map((item) => (
+                    <div key={item.Product_ID} className="flex gap-3 p-3 sm:p-4">
+                      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-line bg-surface-2 sm:h-[72px] sm:w-[72px]">
+                        <img
+                          src={item.Product_image || item.image || PLACEHOLDER}
+                          alt={item.Product_name || item.name}
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = PLACEHOLDER;
+                          }}
+                        />
                       </div>
 
-                      <div className="mt-auto flex items-center justify-between pt-3">
-                        <div className="flex items-center rounded-lg border border-line">
+                      <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            {(item.Product_type || item.category) && (
+                              <p className="text-[11px] uppercase tracking-wide text-muted">
+                                {item.Product_type || item.category}
+                              </p>
+                            )}
+                            <h3 className="text-sm font-medium leading-snug text-ink line-clamp-2">
+                              {item.Product_name || item.name}
+                            </h3>
+                          </div>
                           <button
-                            onClick={() =>
-                              handleUpdateQuantity(item.Product_ID, item.quantity - 1)
-                            }
-                            className="flex h-9 w-9 items-center justify-center text-body hover:text-brand"
+                            onClick={() => handleRemoveItem(item.Product_ID)}
+                            className="shrink-0 rounded-md p-1 text-muted hover:bg-surface-2 hover:text-red-600"
+                            aria-label="Remove"
                           >
-                            <Minus className="h-3.5 w-3.5" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
-                          <span className="w-9 text-center text-sm font-medium text-ink">
-                            {item.quantity}
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center rounded-lg border border-line">
+                            <button
+                              onClick={() =>
+                                handleUpdateQuantity(item.Product_ID, item.quantity - 1)
+                              }
+                              className="flex h-8 w-8 items-center justify-center text-body hover:text-brand"
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </button>
+                            <span className="w-8 text-center text-sm font-medium text-ink">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() =>
+                                handleUpdateQuantity(item.Product_ID, item.quantity + 1)
+                              }
+                              className="flex h-8 w-8 items-center justify-center text-body hover:text-brand"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                          <span className="text-sm font-semibold text-ink sm:text-base">
+                            ${((item.Product_price || item.price || 0) * item.quantity).toFixed(2)}
                           </span>
-                          <button
-                            onClick={() =>
-                              handleUpdateQuantity(item.Product_ID, item.quantity + 1)
-                            }
-                            className="flex h-9 w-9 items-center justify-center text-body hover:text-brand"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </button>
                         </div>
-                        <span className="text-base font-semibold text-ink">
-                          ${((item.Product_price || item.price || 0) * item.quantity).toFixed(2)}
-                        </span>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Summary */}
-            <div className="lg:col-span-4 lg:sticky lg:top-24">
-              <div className="card p-6">
-                <h2 className="text-base font-semibold text-ink">Order Summary</h2>
+            <div className="lg:col-span-4 lg:sticky lg:top-20">
+              <div className="card p-4 sm:p-5">
+                <h2 className="text-sm font-semibold text-ink sm:text-base">Order Summary</h2>
 
-                <div className="mt-5 space-y-3 text-sm">
+                <div className="mt-3 space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted">Subtotal</span>
                     <span className="font-medium text-ink">${subtotal.toFixed(2)}</span>
@@ -171,38 +176,32 @@ export default function CartPage() {
                   )}
                 </div>
 
-                {/* Promo */}
-                <div className="mt-5 flex gap-2">
+                <div className="mt-3 flex gap-2">
                   <input
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value)}
                     placeholder="Promo code"
-                    className="field h-10 flex-1 px-3 text-sm"
+                    className="field h-9 flex-1 px-3 text-sm"
                   />
-                  <button
-                    onClick={applyPromoCode}
-                    className="btn-outline h-10 px-4 text-sm"
-                  >
+                  <button onClick={applyPromoCode} className="btn-outline h-9 px-3 text-sm">
                     Apply
                   </button>
                 </div>
 
-                <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
+                <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
                   <span className="text-sm font-medium text-ink">Total</span>
-                  <span className="text-xl font-semibold text-ink">
-                    ${total.toFixed(2)}
-                  </span>
+                  <span className="text-lg font-semibold text-ink">${total.toFixed(2)}</span>
                 </div>
 
                 <button
                   onClick={() => router.push("/checkout")}
-                  className="btn-primary mt-5 h-11 w-full text-sm"
+                  className="btn-primary mt-3 h-10 w-full text-sm"
                 >
                   Proceed to Checkout
                 </button>
 
-                <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted">
-                  <Lock className="h-3.5 w-3.5" />
+                <p className="mt-2 flex items-center justify-center gap-1 text-[11px] text-muted">
+                  <Lock className="h-3 w-3" />
                   Secure SSL encrypted checkout
                 </p>
               </div>

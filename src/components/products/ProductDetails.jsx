@@ -1,20 +1,21 @@
 'use client';
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams, useRouter } from "next/navigation";
 import {
   Star, Heart, Minus, Plus, Truck, ShieldCheck, RotateCcw,
   ThumbsUp, ThumbsDown, Filter, CheckCircle,
-  Sparkles, Send, Loader2,
+  Sparkles, Send, Loader2, X,
 } from "lucide-react";
 import { Rate, Empty } from "antd";
 import { HeartOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
-import { setCurrentProduct } from "@/store/slices/currentProductSlice";
+import { setCurrentProduct, clearCurrentProduct } from "@/store/slices/currentProductSlice";
 import { addToCart } from "@/store/slices/cartSlice";
 import { productService } from "@/services/api/endpoints";
+import { useCreateReview } from "@/services/api/review";
 import { useAuthModal } from "@/hooks/useAuthModal";
-import { toastSuccess } from "@/lib/toast";
+import { toastSuccess, toastError } from "@/lib/toast";
 import { productDetailRoute } from "@/lib/routes";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -332,7 +333,180 @@ const ReviewSkeleton = () => (
   </div>
 );
 
-const ReviewsSection = ({ product, reviews = [], ratingDistribution = [], averageRating = 0, totalReviews = 0 }) => {
+const WriteReviewModal = ({ open, onClose, productId, onReviewSubmitted }) => {
+  const createReview = useCreateReview();
+  const [rating, setRating] = useState(0);
+  const [title, setTitle] = useState("");
+  const [comment, setComment] = useState("");
+  const [isVerifiedPurchase, setIsVerifiedPurchase] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const next = {};
+    if (!rating || rating < 1 || rating > 5) next.rating = "Select a rating from 1 to 5";
+    const trimmedTitle = title.trim();
+    if (trimmedTitle.length < 2 || trimmedTitle.length > 120) {
+      next.title = "Title must be 2–120 characters";
+    }
+    const trimmedComment = comment.trim();
+    if (trimmedComment.length < 5 || trimmedComment.length > 2000) {
+      next.comment = "Comment must be 5–2000 characters";
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const resetForm = () => {
+    setRating(0);
+    setTitle("");
+    setComment("");
+    setIsVerifiedPurchase(false);
+    setErrors({});
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    try {
+      await createReview.mutateAsync({
+        productId,
+        data: {
+          rating,
+          title: title.trim(),
+          comment: comment.trim(),
+          isVerifiedPurchase,
+        },
+      });
+      toastSuccess("Review added successfully");
+      resetForm();
+      onClose();
+      onReviewSubmitted?.();
+    } catch (err) {
+      toastError(err.response?.data?.message || "Failed to submit review");
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40" onClick={handleClose} aria-hidden="true" />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="write-review-title"
+        className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-line bg-surface p-6 shadow-premium"
+      >
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <h2 id="write-review-title" className="text-lg font-semibold text-ink">
+              Write a review
+            </h2>
+            <p className="mt-1 text-xs text-muted">Rating, title, and comment are required.</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="rounded-lg p-1.5 text-muted hover:bg-surface-2"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-body">Rating</label>
+            <Rate value={rating} onChange={setRating} className="text-brand" />
+            {errors.rating && <p className="mt-1 text-xs text-red-500">{errors.rating}</p>}
+          </div>
+
+          <div className="mt-4">
+            <label htmlFor="review-title" className="mb-1.5 block text-xs font-medium text-body">
+              Title
+            </label>
+            <input
+              id="review-title"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={120}
+              placeholder="Summarize your experience"
+              className="field h-10 w-full px-3 text-sm"
+            />
+            {errors.title && <p className="mt-1 text-xs text-red-500">{errors.title}</p>}
+          </div>
+
+          <div className="mt-4">
+            <label htmlFor="review-comment" className="mb-1.5 block text-xs font-medium text-body">
+              Comment
+            </label>
+            <textarea
+              id="review-comment"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              maxLength={2000}
+              rows={4}
+              placeholder="What did you like or dislike?"
+              className="field w-full resize-y px-3 py-2 text-sm"
+            />
+            <p className="mt-1 text-xs text-muted">{comment.trim().length}/2000</p>
+            {errors.comment && <p className="mt-1 text-xs text-red-500">{errors.comment}</p>}
+          </div>
+
+          <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-body">
+            <input
+              type="checkbox"
+              checked={isVerifiedPurchase}
+              onChange={(e) => setIsVerifiedPurchase(e.target.checked)}
+              className="h-4 w-4 rounded border-line text-brand focus:ring-brand"
+            />
+            I purchased this product
+          </label>
+
+          <div className="mt-6 flex gap-3">
+            <button type="button" onClick={handleClose} className="btn-outline h-10 flex-1 text-sm">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={createReview.isPending}
+              className="btn-primary h-10 flex-1 text-sm disabled:opacity-50"
+            >
+              {createReview.isPending ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Submitting…
+                </span>
+              ) : (
+                "Submit review"
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const ReviewsSection = ({
+  product,
+  productId,
+  reviews = [],
+  ratingDistribution = [],
+  averageRating = 0,
+  totalReviews = 0,
+  onReviewSubmitted,
+}) => {
+  const { openSignIn } = useAuthModal();
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [ratingFilters, setRatingFilters] = useState([]);
   const [sortBy, setSortBy] = useState("newest");
   const [visibleCount, setVisibleCount] = useState(3);
@@ -453,6 +627,14 @@ const ReviewsSection = ({ product, reviews = [], ratingDistribution = [], averag
     }
   };
 
+  const handleWriteReviewClick = () => {
+    if (!isAuthenticated) {
+      openSignIn();
+      return;
+    }
+    setShowReviewModal(true);
+  };
+
   return (
     <section className="py-10">
       {/* Header */}
@@ -464,14 +646,15 @@ const ReviewsSection = ({ product, reviews = [], ratingDistribution = [], averag
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setShowAiPanel((s) => !s)}
-            className="btn-outline h-9 px-3 text-sm"
-          >
-            <Sparkles className="mr-2 inline h-4 w-4" />
-            Review insights
-          </button>
+          {productId && (
+            <button
+              type="button"
+              onClick={handleWriteReviewClick}
+              className="btn-primary h-9 px-4 text-sm whitespace-nowrap"
+            >
+              Write a review
+            </button>
+          )}
           <select
             value={sortBy}
             onChange={(e) => {
@@ -694,6 +877,15 @@ const ReviewsSection = ({ product, reviews = [], ratingDistribution = [], averag
           )}
         </div>
       </div>
+
+      {productId && (
+        <WriteReviewModal
+          open={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          productId={productId}
+          onReviewSubmitted={onReviewSubmitted}
+        />
+      )}
     </section>
   );
 };
@@ -798,44 +990,74 @@ const PopularThisWeek = ({ products = [], maxProducts = 10 }) => {
 const ProductDetailsPage = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const { currentProduct, similarProducts, recentlyViewed } = useSelector((state) => state.currentProduct);
   const [fullApiData, setFullApiData] = useState(null);
 
-  useEffect(() => {
+  const productForRoute =
+    currentProduct && String(currentProduct._id) === String(id) ? currentProduct : null;
+
+  const fetchProduct = useCallback(async () => {
     if (!id) return;
-    setLoading(true);
-    productService.getProductDetail(id)
-      .then((response) => {
-        if (response.data.success) {
-          setFullApiData(response.data.data);
-          dispatch(setCurrentProduct(response.data.data));
-        }
-      })
-      .catch((err) => console.error("Error fetching product:", err))
-      .finally(() => setLoading(false));
+    const response = await productService.getProductDetail(id);
+    if (response.data.success) {
+      setFullApiData(response.data.data);
+      dispatch(setCurrentProduct(response.data.data));
+    } else {
+      setFetchError("Product not found");
+    }
   }, [id, dispatch]);
 
-  useEffect(() => { window.scrollTo(0, 0); }, [currentProduct]);
+  useEffect(() => {
+    if (!id) return;
+
+    setLoading(true);
+    setFetchError(null);
+    setFullApiData(null);
+    dispatch(clearCurrentProduct());
+
+    fetchProduct()
+      .catch((err) => {
+        console.error("Error fetching product:", err);
+        setFetchError("Failed to load product");
+      })
+      .finally(() => setLoading(false));
+  }, [id, dispatch, fetchProduct]);
+
+  useEffect(() => { window.scrollTo(0, 0); }, [id]);
 
   if (loading) return <ProductDetailsSkeleton />;
-  if (!currentProduct) return <div className="min-h-screen flex items-center justify-center text-muted">Product not found</div>;
+  if (fetchError || !productForRoute) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-muted">
+        {fetchError || "Product not found"}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-canvas">
       <div className="container-page py-8">
         <div className="card p-5 md:p-8">
-          <ProductMain currentProduct={currentProduct} />
+          <ProductMain currentProduct={productForRoute} />
         </div>
       </div>
 
       <div className="container-page pb-8">
         <div className="card p-5 md:p-8">
           <ReviewsSection
-            product={currentProduct}
+            product={productForRoute}
+            productId={id}
             reviews={fullApiData?.reviews?.items || []}
-            averageRating={fullApiData?.reviews?.averageRating || currentProduct?.rating || 0}
-            totalReviews={fullApiData?.reviews?.count || 0}
+            averageRating={
+              fullApiData?.reviews?.averageRating
+              ?? fullApiData?.stats?.averageRating
+              ?? productForRoute?.rating
+              ?? 0
+            }
+            totalReviews={fullApiData?.reviews?.count ?? fullApiData?.stats?.reviewCount ?? 0}
+            onReviewSubmitted={fetchProduct}
           />
         </div>
       </div>

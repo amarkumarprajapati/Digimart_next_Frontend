@@ -1,138 +1,189 @@
-/* eslint-disable */
+'use client';
+
 import { useState } from "react";
-import { Mail, Phone, MapPin, Send, MessageSquare } from "lucide-react";
+import Link from "next/link";
+import { ChevronRight, Mail, Phone, MapPin, Send, Clock } from "lucide-react";
+import { useSubmitContactMessage } from "@/services/api/contact";
+import { showToast } from "@/lib/toast";
+
+const CONTACT_ITEMS = [
+  {
+    icon: Mail,
+    title: "Email",
+    detail: "support@digimart.com",
+    href: "mailto:support@digimart.com",
+  },
+  {
+    icon: Phone,
+    title: "Phone",
+    detail: "+91 98765 43210",
+    href: "tel:+919876543210",
+  },
+  {
+    icon: MapPin,
+    title: "Address",
+    detail: "123 Business Avenue, Suite 100, Mumbai, India",
+  },
+  {
+    icon: Clock,
+    title: "Support hours",
+    detail: "Mon – Sat, 9:00 AM – 6:00 PM IST",
+  },
+];
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const submitContact = useSubmitContactMessage();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Form submitted! (Dummy action)");
-    setFormData({ name: "", email: "", message: "" });
+    try {
+      await submitContact.mutateAsync(formData);
+      showToast.success("Message sent! We'll get back to you soon.");
+      setFormData({ name: "", email: "", message: "" });
+    } catch (err) {
+      showToast.error(
+        err.response?.data?.message || "Could not send message. Please try again."
+      );
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      {/* Hero */}
-      <div className="relative bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#088395]/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4 tracking-tight">
-            Get in <span className="text-[#088395]">Touch</span>
+    <div className="bg-canvas">
+      <div className="container-page py-6">
+        <nav className="mb-6 flex items-center gap-1 text-sm text-muted">
+          <Link href="/" className="hover:text-brand">
+            Home
+          </Link>
+          <ChevronRight className="h-4 w-4" />
+          <span className="text-ink">Contact</span>
+        </nav>
+
+        <section className="mb-8">
+          <span className="text-sm font-medium uppercase tracking-wide text-brand">
+            Get in touch
+          </span>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+            We&apos;re here to help
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
-            We'd love to hear from you! Reach out with any questions, feedback, or inquiries.
+          <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted">
+            Questions about an order, a product, or anything else? Send us a message and our
+            team will respond as soon as possible.
           </p>
-        </div>
-      </div>
+        </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
-          {/* Contact Info */}
-          <div className="lg:col-span-2 space-y-8">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                Contact Information
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-                Fill out the form or use the details below to reach us directly.
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:gap-8">
+          <aside className="space-y-4 lg:col-span-2">
+            <div className="card p-6">
+              <h2 className="text-lg font-semibold text-ink">Contact information</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted">
+                Reach us directly using the details below, or fill out the form.
               </p>
+
+              <ul className="mt-6 space-y-5">
+                {CONTACT_ITEMS.map(({ icon: Icon, title, detail, href }) => (
+                  <li key={title} className="flex items-start gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-soft">
+                      <Icon className="h-4 w-4 text-brand" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-ink">{title}</h3>
+                      {href ? (
+                        <a
+                          href={href}
+                          className="mt-0.5 block text-sm text-muted transition-colors hover:text-brand"
+                        >
+                          {detail}
+                        </a>
+                      ) : (
+                        <p className="mt-0.5 text-sm leading-relaxed text-muted">{detail}</p>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#EBF4F6] dark:bg-[#088395]/20 flex items-center justify-center flex-shrink-0">
-                  <Mail className="w-5 h-5 text-[#088395]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Email</h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">support@digimart.com</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#EBF4F6] dark:bg-[#088395]/20 flex items-center justify-center flex-shrink-0">
-                  <Phone className="w-5 h-5 text-[#088395]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Phone</h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">+1 (555) 123-4567</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#EBF4F6] dark:bg-[#088395]/20 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-5 h-5 text-[#088395]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Address</h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    123 Business Ave, Suite 100,<br />City, Country
-                  </p>
-                </div>
-              </div>
+            <div className="card p-6">
+              <h3 className="text-sm font-semibold text-ink">Common topics</h3>
+              <ul className="mt-3 space-y-2 text-sm text-muted">
+                <li>Order tracking & delivery</li>
+                <li>Returns & refunds</li>
+                <li>Product availability</li>
+                <li>Account & payment issues</li>
+              </ul>
+              <Link href="/faq" className="mt-4 inline-block text-sm font-medium text-brand hover:underline">
+                Visit FAQ
+              </Link>
             </div>
-          </div>
+          </aside>
 
-          {/* Contact Form */}
           <div className="lg:col-span-3">
-            <form
-              onSubmit={handleSubmit}
-              className="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800"
-            >
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-[#088395]" />
-                Send us a message
-              </h3>
+            <form onSubmit={handleSubmit} className="card p-6 sm:p-8">
+              <h2 className="text-lg font-semibold text-ink">Send us a message</h2>
+              <p className="mt-1 text-sm text-muted">
+                All fields are required. We typically reply within one business day.
+              </p>
 
-              <div className="space-y-5">
+              <div className="mt-6 space-y-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="contact-name" className="mb-1.5 block text-sm font-medium text-body">
                     Name
                   </label>
                   <input
                     type="text"
-                    id="name"
+                    id="contact-name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#088395] focus:border-transparent transition-colors"
+                    placeholder="Your full name"
+                    className="field h-11 px-4 text-sm"
                     required
                   />
                 </div>
+
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="contact-email" className="mb-1.5 block text-sm font-medium text-body">
                     Email
                   </label>
                   <input
                     type="email"
-                    id="email"
+                    id="contact-email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#088395] focus:border-transparent transition-colors"
+                    placeholder="you@example.com"
+                    className="field h-11 px-4 text-sm"
                     required
                   />
                 </div>
+
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="contact-message" className="mb-1.5 block text-sm font-medium text-body">
                     Message
                   </label>
                   <textarea
-                    id="message"
+                    id="contact-message"
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#088395] focus:border-transparent transition-colors resize-none"
-                    rows="5"
+                    placeholder="How can we help you?"
+                    rows={5}
+                    className="field w-full resize-y px-4 py-3 text-sm"
                     required
-                  ></textarea>
+                  />
                 </div>
+
                 <button
                   type="submit"
-                  className="w-full px-6 py-3 bg-[#088395] hover:bg-[#066a78] text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                  disabled={submitContact.isPending}
+                  className="btn-primary h-11 w-full text-sm disabled:opacity-50 sm:w-auto sm:px-8"
                 >
-                  <Send className="w-4 h-4" />
-                  Send Message
+                  {submitContact.isPending ? (
+                    "Sending..."
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      Send message
+                    </>
+                  )}
                 </button>
               </div>
             </form>

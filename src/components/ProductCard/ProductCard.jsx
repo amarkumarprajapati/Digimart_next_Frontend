@@ -3,7 +3,6 @@
 import { Heart, Plus, Minus, ShoppingBag, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { setCurrentProduct } from "@/store/slices/currentProductSlice";
 import { addToCart, updateQuantity, removeItem } from "@/store/slices/cartSlice";
 import { toggleWishlist } from "@/store/slices/wishlistSlice";
 import { auth } from "@/lib/auth";
@@ -44,7 +43,6 @@ const ProductCard = ({ product, loading = false, variant = "grid" }) => {
 
   const handleProductClick = () => {
     if (loading || !productId) return;
-    dispatch(setCurrentProduct(product));
     router.push(productDetailRoute(product));
   };
 
@@ -124,6 +122,7 @@ const ProductCard = ({ product, loading = false, variant = "grid" }) => {
         <img
           src={image}
           alt={name}
+          referrerPolicy="no-referrer"
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           onError={(e) => {
             e.currentTarget.onerror = null;

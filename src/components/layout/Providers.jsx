@@ -7,6 +7,7 @@ import store from "@/store/store";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ThemeInitScript } from "@/components/layout/ThemeInitScript";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthInit } from "./AuthInit";
 
@@ -19,6 +20,7 @@ export const Providers = ({ children }) => {
     <QueryClientProvider client={queryClient}>
       <GoogleOAuthProvider clientId={clientId}>
         <Provider store={store}>
+          <ThemeInitScript />
           <ThemeProvider>
             <AuthInit />
             {children}

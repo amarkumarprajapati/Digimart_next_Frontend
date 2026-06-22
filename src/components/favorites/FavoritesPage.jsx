@@ -49,7 +49,7 @@ const FavoritesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-canvas">
+    <div className="bg-canvas">
       <div className="container-page py-6">
         <nav className="mb-6 flex items-center gap-1 text-sm text-muted">
           <Link href="/" className="hover:text-brand">

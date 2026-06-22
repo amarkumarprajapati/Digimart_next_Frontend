@@ -109,17 +109,7 @@ export default function Home() {
 
       {/* Featured products */}
       <section className="container-page py-12">
-        <div className="mb-10 flex items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-ink">Featured products</h2>
-            <p className="mt-1 text-sm text-muted">
-              New arrivals, bestsellers, and trending picks — updated from live catalog data.
-            </p>
-          </div>
-          <Link href="/products" className="shrink-0 text-sm font-medium text-brand hover:underline">
-            View all
-          </Link>
-        </div>
+       
 
         <div className="space-y-14">
           <ProductRowSlider

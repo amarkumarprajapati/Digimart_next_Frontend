@@ -79,7 +79,7 @@ export const categoryService = {
 export const reviewService = {
   getProductReviews: (productId, page = 1, limit = 10) =>
     api.get(`/user/products/${productId}/reviews?page=${page}&limit=${limit}`),
-  createReview: (productId, data) => api.post(`/user/products/${productId}/reviews`, data),
+  createReview: (productId, data) => api.post(`/products/${productId}/reviews`, data),
   updateReview: (reviewId, data) => api.put(`/user/reviews/${reviewId}`, data),
   deleteReview: (reviewId) => api.delete(`/user/reviews/${reviewId}`),
   markReviewHelpful: (reviewId) => api.post(`/user/reviews/${reviewId}/helpful`),
