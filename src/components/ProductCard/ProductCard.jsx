@@ -4,10 +4,8 @@ import { Heart, Plus, Minus, ShoppingBag, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart, updateQuantity, removeItem } from "@/store/slices/cartSlice";
-import { toggleWishlist } from "@/store/slices/wishlistSlice";
-import { auth } from "@/lib/auth";
 import { productDetailRoute } from "@/lib/routes";
-import { useAuthModal } from "@/hooks/useAuthModal";
+import { useFavoriteActions } from "@/hooks/useFavoriteActions";
 import { showToast } from "@/lib/toast";
 
 const PLACEHOLDER =
@@ -19,19 +17,14 @@ const formatPrice = (value) =>
 const ProductCard = ({ product, loading = false, variant = "grid" }) => {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { openSignIn } = useAuthModal();
-
-  const cartItems = useSelector((state) => state?.cart?.cartItems || []);
-  const wishlistItems = useSelector((state) => state?.wishlist?.items || []);
+  const { isFavorite, toggleFavorite } = useFavoriteActions();
 
   const productId = product?._id ?? product?.id;
+  const cartItems = useSelector((state) => state?.cart?.cartItems || []);
   const cartItem = cartItems.find(
     (item) => (item._id ?? item.id) === productId
   );
-  const isFavorite = wishlistItems.some(
-    (item) => (item._id ?? item.id ?? item.Product_ID) === productId
-  );
-
+  const favorited = isFavorite(productId);
   const name = product?.name || product?.Product_name;
   const price = Number(product?.price ?? product?.Product_price ?? 0);
   const image = product?.Product_image || product?.image || PLACEHOLDER;
@@ -49,10 +42,6 @@ const ProductCard = ({ product, loading = false, variant = "grid" }) => {
   const handleAddToCart = (e) => {
     e.stopPropagation();
     if (loading || !inStock) return;
-    if (!auth.isAuthenticated()) {
-      openSignIn();
-      return;
-    }
     dispatch(
       addToCart({
         ...product,
@@ -68,16 +57,14 @@ const ProductCard = ({ product, loading = false, variant = "grid" }) => {
 
   const handleToggleWishlist = (e) => {
     e.stopPropagation();
-    dispatch(
-      toggleWishlist({
-        ...product,
-        _id: productId,
-        Product_ID: product?.Product_ID ?? productId,
-        Product_name: name,
-        Product_price: price,
-        Product_image: image,
-      })
-    );
+    toggleFavorite({
+      ...product,
+      _id: productId,
+      Product_ID: product?.Product_ID ?? productId,
+      Product_name: name,
+      Product_price: price,
+      Product_image: image,
+    });
   };
 
   const handleQuantityChange = (e, action) => {
@@ -142,10 +129,10 @@ const ProductCard = ({ product, loading = false, variant = "grid" }) => {
         <button
           type="button"
           onClick={handleToggleWishlist}
-          className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-surface/95 text-body shadow-soft backdrop-blur-sm transition-colors hover:text-brand"
-          aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"}
+          className="absolute right-2 top-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-surface/95 text-body shadow-soft backdrop-blur-sm transition-colors hover:text-brand"
+          aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
         >
-          <Heart className={`h-3.5 w-3.5 ${isFavorite ? "fill-brand text-brand" : ""}`} />
+          <Heart className={`h-3.5 w-3.5 ${favorited ? "fill-brand text-brand" : ""}`} />
         </button>
       </div>
 

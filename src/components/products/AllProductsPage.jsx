@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import {
   ChevronRight,
   ChevronDown,
@@ -18,9 +18,7 @@ import {
 import { useProducts } from "@/services/api/product";
 import ProductCard from "@/components/ProductCard/ProductCard";
 import { addToCart } from "@/store/slices/cartSlice";
-import { toggleWishlist } from "@/store/slices/wishlistSlice";
-import { auth } from "@/lib/auth";
-import { useAuthModal } from "@/hooks/useAuthModal";
+import { useFavoriteActions } from "@/hooks/useFavoriteActions";
 import { productDetailRoute } from "@/lib/routes";
 import { showToast } from "@/lib/toast";
 
@@ -91,8 +89,7 @@ const FilterOption = ({ children, className = "" }) => (
 const ProductListRow = ({ product }) => {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { openSignIn } = useAuthModal();
-  const wishlistItems = useSelector((state) => state?.wishlist?.items || []);
+  const { isFavorite, toggleFavorite } = useFavoriteActions();
 
   const id = getProductId(product);
   const name = getName(product);
@@ -103,16 +100,10 @@ const ProductListRow = ({ product }) => {
   const inStock = getInStock(product);
   const tags = getTags(product);
   const salePrice = discount > 0 ? price - (price * discount) / 100 : price;
-  const isFavorite = wishlistItems.some(
-    (item) => (item._id ?? item.id ?? item.Product_ID) === id
-  );
+  const favorited = isFavorite(id);
 
   const handleAddToCart = () => {
     if (!inStock) return;
-    if (!auth.isAuthenticated()) {
-      openSignIn();
-      return;
-    }
     dispatch(
       addToCart({
         ...product,
@@ -127,16 +118,14 @@ const ProductListRow = ({ product }) => {
   };
 
   const handleToggleWishlist = () => {
-    dispatch(
-      toggleWishlist({
-        ...product,
-        _id: id,
-        Product_ID: product?.Product_ID ?? id,
-        Product_name: name,
-        Product_price: price,
-        Product_image: image,
-      })
-    );
+    toggleFavorite({
+      ...product,
+      _id: id,
+      Product_ID: product?.Product_ID ?? id,
+      Product_name: name,
+      Product_price: price,
+      Product_image: image,
+    });
   };
 
   return (
@@ -242,8 +231,8 @@ const ProductListRow = ({ product }) => {
               onClick={handleToggleWishlist}
               className="inline-flex w-full items-center justify-center gap-1.5 text-sm text-muted transition-colors hover:text-brand"
             >
-              <Heart className={`h-4 w-4 ${isFavorite ? "fill-brand text-brand" : ""}`} />
-              {isFavorite ? "Saved" : "Add to Wish List"}
+              <Heart className={`h-4 w-4 ${favorited ? "fill-brand text-brand" : ""}`} />
+              {favorited ? "Saved" : "Add to Wish List"}
             </button>
           </div>
         </div>

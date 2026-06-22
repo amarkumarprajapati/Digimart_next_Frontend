@@ -214,42 +214,40 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
 
     return (
         <div 
-            className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md overflow-y-auto"
+            className="fixed inset-0 z-[1000] flex cursor-pointer items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
             onClick={onClose}
         >
-            {/* Modal Container */}
             <div 
-                className="relative w-full max-w-[380px] bg-white dark:bg-gray-950 rounded-3xl shadow-2xl my-auto transition-all duration-300 transform scale-100"
+                className="relative my-auto w-full max-w-[400px] cursor-default rounded-2xl border border-line bg-surface shadow-premium transition-all duration-300"
                 onClick={(e) => e.stopPropagation()}
             >
-
-                {/* Close & Theme Toggle */}
-                <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+                <div className="absolute top-4 right-4 z-20">
                     <button
+                        type="button"
                         onClick={onClose}
-                        className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                        className="cursor-pointer rounded-lg p-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-ink"
+                        aria-label="Close"
                     >
-                        <X className="w-4 h-4" />
+                        <X className="h-4 w-4" />
                     </button>
                 </div>
 
                 <div className={`p-6 pt-10 transition-all duration-200 ease-in-out ${isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
 
-                    {/* Header */}
-                    <div className="text-center mb-6">
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1.5">
+                    <div className="mb-6 text-center">
+                        <h2 className="mb-1.5 text-xl font-semibold text-ink">
                             {activeTab === "signin"
-                                ? "Welcome Back!"
+                                ? "Sign in to DigiMart"
                                 : activeTab === "signup"
-                                  ? "Create Account"
-                                  : "Reset Password"}
+                                  ? "Create your account"
+                                  : "Reset password"}
                         </h2>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs text-center mx-auto max-w-[80%] leading-relaxed">
+                        <p className="mx-auto max-w-[85%] text-xs leading-relaxed text-muted">
                             {activeTab === "signin"
-                                ? "Login to access your DigiMart account"
+                                ? "Access your orders, favorites, and saved details."
                                 : activeTab === "signup"
-                                  ? "Join DigiMart to start shopping"
-                                  : "Enter your email and we'll send you a reset link"}
+                                  ? "Join DigiMart to save favorites and checkout faster."
+                                  : "Enter your email and we'll send you a reset link."}
                         </p>
                     </div>
 
@@ -270,10 +268,10 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                     </div>
 
                     {/* Divider */}
-                    <div className="relative flex items-center gap-3 mb-6">
-                        <div className="h-px bg-gray-200 dark:bg-gray-800 flex-1" />
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Or</span>
-                        <div className="h-px bg-gray-200 dark:bg-gray-800 flex-1" />
+                    <div className="relative mb-6 flex items-center gap-3">
+                        <div className="h-px flex-1 bg-line" />
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted">Or</span>
+                        <div className="h-px flex-1 bg-line" />
                     </div>
                     </>
                     )}
@@ -282,13 +280,13 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                     {activeTab === "forgot" ? (
                         forgotSent ? (
                             <div className="space-y-4 text-center">
-                                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                                <p className="text-sm leading-relaxed text-body">
                                     {forgotMessage}
                                 </p>
                                 <button
                                     type="button"
                                     onClick={() => handleSwitchTab("signin")}
-                                    className="w-full h-10 bg-brand hover:bg-brand-hover text-white font-semibold rounded-lg transition-all active:scale-[0.98] text-sm"
+                                    className="btn-primary h-10 w-full cursor-pointer text-sm"
                                 >
                                     Back to Login
                                 </button>
@@ -296,15 +294,15 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                         ) : (
                             <form onSubmit={handleForgotPassword} className="space-y-4">
                                 <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Email</label>
+                                    <label className="ml-0.5 text-xs font-medium text-body">Email</label>
                                     <div className="relative group">
-                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
+                                        <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted transition-colors group-focus-within:text-brand" />
                                         <input
                                             type="email"
                                             value={forgotEmail}
                                             onChange={(e) => setForgotEmail(e.target.value)}
                                             placeholder="Enter your email"
-                                            className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                            className="field h-10 w-full pl-9 pr-3 text-sm"
                                             required
                                         />
                                     </div>
@@ -313,7 +311,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="w-full h-10 bg-brand hover:bg-brand-hover text-white font-semibold rounded-lg transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                                    className="btn-primary h-10 w-full cursor-pointer text-sm disabled:cursor-not-allowed disabled:opacity-70"
                                 >
                                     {isLoading ? (
                                         <span className="flex items-center gap-2">
@@ -327,7 +325,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                     ) : activeTab === "signin" ? (
                         <form onSubmit={handleSignIn} className="space-y-4">
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Email</label>
+                                <label className="ml-0.5 text-xs font-medium text-body">Email</label>
                                 <div className="relative group">
                                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
                                     <input
@@ -335,14 +333,14 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                                         value={signInData.email}
                                         onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
                                         placeholder="Enter your email"
-                                        className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                        className="field h-10 w-full pl-9 pr-3 text-sm"
                                         required
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Password</label>
+                                <label className="ml-0.5 text-xs font-medium text-body">Password</label>
                                 <div className="relative group">
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
                                     <input
@@ -350,13 +348,13 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                                         value={signInData.password}
                                         onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
                                         placeholder="Enter password"
-                                        className="w-full h-10 pl-9 pr-9 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                        className="field h-10 w-full pl-9 pr-9 text-sm"
                                         required
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-muted transition-colors hover:text-ink"
                                     >
                                         {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                                     </button>
@@ -366,7 +364,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                             <button
                                 type="button"
                                 onClick={() => handleSwitchTab("forgot")}
-                                className="block ml-auto text-xs font-semibold text-brand hover:text-brand-hover translate-y-[-4px]"
+                                className="ml-auto block cursor-pointer text-xs font-medium text-brand hover:text-brand-hover"
                             >
                                 Forgot Password?
                             </button>
@@ -374,7 +372,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full h-10 bg-brand hover:bg-brand-hover text-white font-semibold rounded-lg transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                                className="btn-primary h-10 w-full cursor-pointer text-sm disabled:cursor-not-allowed disabled:opacity-70"
                             >
                                 {isLoading ? (
                                     <span className="flex items-center gap-2">
@@ -388,7 +386,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                         <form onSubmit={handleSignUp} className="space-y-3">
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">First Name</label>
+                                    <label className="ml-0.5 text-xs font-medium text-body">First Name</label>
                                     <div className="relative group">
                                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
                                         <input
@@ -396,13 +394,13 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                                             value={signUpData.firstName}
                                             onChange={(e) => setSignUpData({ ...signUpData, firstName: e.target.value })}
                                             placeholder="First name"
-                                            className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                            className="field h-10 w-full pl-9 pr-3 text-sm"
                                             required
                                         />
                                     </div>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Last Name</label>
+                                    <label className="ml-0.5 text-xs font-medium text-body">Last Name</label>
                                     <div className="relative group">
                                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
                                         <input
@@ -410,14 +408,14 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                                             value={signUpData.lastName}
                                             onChange={(e) => setSignUpData({ ...signUpData, lastName: e.target.value })}
                                             placeholder="Last name"
-                                            className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                            className="field h-10 w-full pl-9 pr-3 text-sm"
                                             required
                                         />
                                     </div>
                                 </div>
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Email</label>
+                                <label className="ml-0.5 text-xs font-medium text-body">Email</label>
                                 <div className="relative group">
                                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
                                     <input
@@ -425,13 +423,13 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                                         value={signUpData.email}
                                         onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
                                         placeholder="Enter your email"
-                                        className="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                        className="field h-10 w-full pl-9 pr-3 text-sm"
                                         required
                                     />
                                 </div>
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Password</label>
+                                <label className="ml-0.5 text-xs font-medium text-body">Password</label>
                                 <div className="relative group">
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
                                     <input
@@ -439,20 +437,20 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                                         value={signUpData.password}
                                         onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
                                         placeholder="Create Password"
-                                        className="w-full h-10 pl-9 pr-9 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                        className="field h-10 w-full pl-9 pr-9 text-sm"
                                         required
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-muted transition-colors hover:text-ink"
                                     >
                                         {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                                     </button>
                                 </div>
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-900 dark:text-gray-300 ml-0.5">Confirm Password</label>
+                                <label className="ml-0.5 text-xs font-medium text-body">Confirm Password</label>
                                 <div className="relative group">
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
                                     <input
@@ -460,7 +458,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                                         value={signUpData.confirmPassword}
                                         onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}
                                         placeholder="Confirm Password"
-                                        className="w-full h-10 pl-9 pr-9 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all placeholder:text-gray-400 text-sm dark:text-white"
+                                        className="field h-10 w-full pl-9 pr-9 text-sm"
                                         required
                                     />
                                 </div>
@@ -468,7 +466,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full h-10 bg-brand hover:bg-brand-hover text-white font-semibold rounded-lg transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2 text-sm"
+                                className="btn-primary mt-2 h-10 w-full cursor-pointer text-sm disabled:cursor-not-allowed disabled:opacity-70"
                             >
                                 {isLoading ? (
                                     <span className="flex items-center gap-2">
@@ -481,14 +479,14 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                     )}
 
                     {/* Footer Toggle */}
-                    <div className="mt-5 text-center border-t border-gray-100 dark:border-gray-800 pt-4">
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                    <div className="mt-5 border-t border-line pt-4 text-center">
+                        <p className="text-xs text-muted">
                             {activeTab === "forgot" ? (
                                 <>
                                     Remember your password?
                                     <button
                                         onClick={() => handleSwitchTab("signin")}
-                                        className="ml-1.5 font-semibold text-brand hover:text-brand-hover transition-all"
+                                        className="ml-1.5 cursor-pointer font-medium text-brand hover:text-brand-hover"
                                     >
                                         Login
                                     </button>
@@ -498,7 +496,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                                     Didn&apos;t have an account?
                                     <button
                                         onClick={() => handleSwitchTab("signup")}
-                                        className="ml-1.5 font-semibold text-brand hover:text-brand-hover transition-all"
+                                        className="ml-1.5 cursor-pointer font-medium text-brand hover:text-brand-hover"
                                     >
                                         Sign Up
                                     </button>
@@ -508,7 +506,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }) => {
                                     Already have an account?
                                     <button
                                         onClick={() => handleSwitchTab("signin")}
-                                        className="ml-1.5 font-semibold text-brand hover:text-brand-hover transition-all"
+                                        className="ml-1.5 cursor-pointer font-medium text-brand hover:text-brand-hover"
                                     >
                                         Login
                                     </button>

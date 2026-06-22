@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ThemeInitScript } from "@/components/layout/ThemeInitScript";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthInit } from "./AuthInit";
+import { StoreHydration } from "./StoreHydration";
 
 const clientId = "798368534301-rap3d22s80ee83qbc7q33r3ab6lmbijs.apps.googleusercontent.com";
 
@@ -22,6 +23,7 @@ export const Providers = ({ children }) => {
         <Provider store={store}>
           <ThemeInitScript />
           <ThemeProvider>
+            <StoreHydration />
             <AuthInit />
             {children}
             <ToastContainer newestOnTop limit={3} />

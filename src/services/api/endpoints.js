@@ -95,7 +95,15 @@ export const cartService = {
   syncCart: (items) => api.post("/user/cart/sync", { items }),
 };
 
-// ---------- WISHLIST ----------
+// ---------- FAVORITES ----------
+export const favoritesService = {
+  getFavorites: () => api.get("/favorites"),
+  addToFavorites: (productId) => api.post("/favorites", { productId }),
+  deleteFavorite: (productId) => api.delete(`/favorites/${productId}`),
+  removeFromFavorites: (productId) => api.delete(`/favorites/${productId}`),
+};
+
+// ---------- WISHLIST (legacy) ----------
 export const wishlistService = {
   getWishlist: () => api.get("/v1/wishlist"),
   addToWishlist: (productId) => api.post("/user/wishlist/add", { productId }),

@@ -7,6 +7,7 @@ export * from "./category";
 export * from "./review";
 export * from "./cart";
 export * from "./wishlist";
+export * from "./favorites";
 export * from "./coupon";
 export * from "./order";
 export * from "./payment";

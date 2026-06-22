@@ -19,41 +19,9 @@ const saveToLocalStorage = (key, value) => {
 };
 
 /**
- * Helper: Load from localStorage
- */
-const loadFromLocalStorage = (key, fallback) => {
-  try {
-    if (typeof window !== 'undefined') {
-      const data = localStorage.getItem(key);
-      return data ? JSON.parse(data) : fallback;
-    }
-    return fallback;
-  } catch {
-    return fallback;
-  }
-};
-
-/**
- * Preloaded state from localStorage
- */
-const preloadedState = {
-  cart: loadFromLocalStorage("cart", {
-    cartItems: [],
-    totalQuantity: 0,
-    totalPrice: 0,
-  }),
-  auth: loadFromLocalStorage("auth", {
-    isAuthenticated: false,
-    user: null,
-    loading: false,
-  }),
-  wishlist: loadFromLocalStorage("wishlist", {
-    items: [],
-  }),
-};
-
-/**
  * Redux Store Configuration
+ * Note: cart/wishlist/auth are hydrated client-side in StoreHydration
+ * to avoid SSR/client HTML mismatches.
  */
 const store = configureStore({
   reducer: {
@@ -63,7 +31,6 @@ const store = configureStore({
     auth: authReducer,
     wishlist: wishlistReducer,
   },
-  preloadedState,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {

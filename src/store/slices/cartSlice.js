@@ -78,8 +78,10 @@ const cartSlice = createSlice({
 
       saveCartToStorage(state);
     },
+
+    hydrateCart: (_, action) => action.payload,
   },
 });
 
-export const { addToCart, removeFromCart, removeItem, updateQuantity } = cartSlice.actions;
+export const { addToCart, removeFromCart, removeItem, updateQuantity, hydrateCart } = cartSlice.actions;
 export default cartSlice.reducer;

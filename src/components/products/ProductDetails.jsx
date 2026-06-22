@@ -15,6 +15,7 @@ import { addToCart } from "@/store/slices/cartSlice";
 import { productService } from "@/services/api/endpoints";
 import { useCreateReview } from "@/services/api/review";
 import { useAuthModal } from "@/hooks/useAuthModal";
+import { useFavoriteActions } from "@/hooks/useFavoriteActions";
 import { toastSuccess, toastError } from "@/lib/toast";
 import { productDetailRoute } from "@/lib/routes";
 
@@ -83,10 +84,10 @@ const ProductMain = ({ currentProduct }) => {
   const router = useRouter();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const { openSignIn } = useAuthModal();
+  const { isFavorite, toggleFavorite } = useFavoriteActions();
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [wishlisted, setWishlisted] = useState(false);
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedColor, setSelectedColor] = useState(0);
 
@@ -136,7 +137,6 @@ const ProductMain = ({ currentProduct }) => {
   });
 
   const handleAddToCart = () => {
-    if (!isAuthenticated) { openSignIn(); return; }
     dispatch(addToCart(buildCartItem()));
     toastSuccess(`${name} added to cart`);
   };
@@ -146,6 +146,19 @@ const ProductMain = ({ currentProduct }) => {
     dispatch(addToCart(buildCartItem()));
     router.push("/checkout");
   };
+
+  const handleToggleFavorite = () => {
+    toggleFavorite({
+      ...currentProduct,
+      _id: id,
+      Product_ID: currentProduct?.Product_ID || id,
+      Product_name: name,
+      Product_price: price,
+      Product_image: image,
+    });
+  };
+
+  const favorited = isFavorite(id);
 
   return (
     <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
@@ -177,11 +190,12 @@ const ProductMain = ({ currentProduct }) => {
             onError={(e) => { e.currentTarget.src = PLACEHOLDER; }}
           />
           <button
-            onClick={() => setWishlisted((s) => !s)}
-            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-surface/90 text-body shadow-soft transition-colors hover:text-brand"
-            aria-label="Add to wishlist"
+            type="button"
+            onClick={handleToggleFavorite}
+            className="absolute right-4 top-4 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-surface/90 text-body shadow-soft transition-colors hover:text-brand"
+            aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
           >
-            <Heart className={`h-5 w-5 ${wishlisted ? "fill-brand text-brand" : ""}`} />
+            <Heart className={`h-5 w-5 ${favorited ? "fill-brand text-brand" : ""}`} />
           </button>
         </div>
       </div>
