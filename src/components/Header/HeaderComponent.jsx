@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { Tooltip, ConfigProvider, Dropdown, theme as antTheme } from "antd";
 import {
   Search,
@@ -506,4 +506,14 @@ const HeaderComponent = () => {
   );
 };
 
-export default HeaderComponent;
+const HeaderFallback = () => (
+  <header className="sticky top-0 z-[100] border-b border-line bg-surface/90 backdrop-blur-md h-16" />
+);
+
+const Header = () => (
+  <Suspense fallback={<HeaderFallback />}>
+    <HeaderComponent />
+  </Suspense>
+);
+
+export default Header;
