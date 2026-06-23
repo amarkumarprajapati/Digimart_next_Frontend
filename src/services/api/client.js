@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:4000/api/v1",
+  baseURL: "https://digimart-nest-backend.onrender.com/api/v1",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
